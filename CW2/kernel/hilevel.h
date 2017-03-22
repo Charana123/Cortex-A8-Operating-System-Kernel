@@ -15,12 +15,13 @@
 #include "PL011.h"
 #include "SP804.h"
 
-// Include functionality relating to the   kernel.
+// Include functionality relating to the kernel.
 
 #include "lolevel.h"
 #include "int.h"
 #include "libc.h"
 #include "pipe.h"
+
 
 /* The kernel source code is made simpler via three type definitions:
  *

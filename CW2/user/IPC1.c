@@ -7,7 +7,7 @@ void main_IPC1() {
   int id = getid();
 
   //Forks off a 16 child process, last id = 18
-  if(id < 18){
+  if(id < 5){
       pid_t pid = fork( 5 );
       if( 0 == pid ) {
         printString("Child\n");
