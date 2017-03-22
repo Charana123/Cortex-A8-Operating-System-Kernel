@@ -1,31 +1,24 @@
 #include "hilevel.h"
 
+<<<<<<< HEAD
 
 
+=======
+>>>>>>> new_branch
 pcb_t pcb[ 100 ], *current = NULL;
 int currentProcess, maxProcesses;
 
-void createPCB(ctx_t* ctx, int basePriority, int index){
-  memset( &pcb[ index ], 0, sizeof( pcb_t ) );
-  pcb[index].pid = index + 1; // Gives the process an id
-  pcb[index].active = 1; // This states the program is active
-  pcb[index].basePriority = basePriority;
-  pcb[index].effectivePriority = pcb[index].basePriority;
-  pcb[index].pipes = NULL;
-  pcb[index].npipes = 0;
 
-  //Copy Execution Context of Parent of Child
-  memcpy( &pcb[ index ].ctx, ctx, sizeof( ctx_t ) );
-  pcb[ index ].ctx.sp   = ( uint32_t ) pcb[index-1].ctx.sp + 0x00001000; //Allocate Stack Space
-  ctx->gpr[0]= pcb[ index ].pid; //Register 0 (Return Value) of Parent is the Process ID of Child
-  pcb[ index ].ctx.gpr[0] = 0; //Register 0 (Return Value) of Child is 0
-  if(index == maxProcesses) { maxProcesses++; }
-}
+//Priority Scheduler
+/*
+  Deschedules currently running process and Schedules next highest priority process.
 
+  @param ctx - Context of current running process to be saved to its respective PCB.
+*/
 void priorityScheduler(ctx_t* ctx){
-  //Process enging was implemented
-  //During every IRQ interrupt, every process that did not run that turns effective priority is incremented.
-  //The process that did run is reset to its base priority.
+  //Process Ageing
+  //During every IRQ interrupt, For every process that did not run that turn, its effective priority is incremented.
+  //The process that did run that turn is reset to its base priority.
   for(int index=0; index<maxProcesses; index++){
     if(index == currentProcess) {
       pcb[index].effectivePriority = pcb[index].basePriority;
@@ -51,13 +44,17 @@ void priorityScheduler(ctx_t* ctx){
    current = &pcb[currentProcess];
 }
 
+
+
 // Address to a program's main() function entry point to the program main
 // Address to top of program's allocated stack space
 extern void     main_console();
 extern uint32_t tos_console;
 
-
-void hilevel_handler_rst(ctx_t* ctx  ) {
+/*
+  Called on execution to intialize the program for execution.
+*/
+void hilevel_handler_rst(ctx_t* ctx) {
 
   //Global variable intializations
   current = &pcb[ 0 ];
@@ -100,6 +97,9 @@ void hilevel_handler_rst(ctx_t* ctx  ) {
   return;
 }
 
+/*
+  High level handler for IRQ (hardware interrupts). Currently only called by Timer.
+*/
 void hilevel_handler_irq(ctx_t* ctx) {
   //Finds source address of Hardware Interrupt
   uint32_t id = GICC0->IAR;
@@ -115,63 +115,160 @@ void hilevel_handler_irq(ctx_t* ctx) {
   return;
 }
 
-//SVC Software Interrupt Handler
+
+
+//SVC Handlers
+
+/*
+  Writes to a file.
+
+  @param fd - File descriptor of file to write to.
+  @param x  - Pointer to string to write into file.
+  @param n  - Characters that exist in the string to be written.
+*/
+void svc_write(int fd, char *x, int n){
+  for(int i = 0; i < n; i++ ) {
+    PL011_putc( UART0, *x++, true );
+  }
+}
+
+/*
+  Creates a PCB (Process Block) entry for a newly created process. Used during a fork system call for creation of child
+  process.
+
+  @param ctx - Context, SVC stack pointer (state of gprs) to be copied to the newly created process.
+               Context is that of the parent process.
+  @param basePriority - Base priority of the newly created process. Given to child by parent process.
+  @param index - Index in the PCB Table that the newly created Process Block exists.
+*/
+void createPCB(ctx_t* ctx, int basePriority, int index){
+  memset( &pcb[ index ], 0, sizeof( pcb_t ) );
+  pcb[index].pid = index + 1; // Gives the process an id
+  pcb[index].active = 1; // This states the program is active
+  pcb[index].basePriority = basePriority;
+  pcb[index].effectivePriority = pcb[index].basePriority;
+  pcb[index].pipes = NULL;
+  pcb[index].npipes = 0;
+
+  //Copy Execution Context of Parent of Child
+  memcpy( &pcb[ index ].ctx, ctx, sizeof( ctx_t ) );
+  pcb[ index ].ctx.sp   = ( uint32_t ) pcb[index-1].ctx.sp + 0x00001000; //Allocate Stack Space
+  if(index == maxProcesses) { maxProcesses++; }
+}
+
+/*
+  Forks a child process.
+  @param basePriority - Base priority of the child process.
+  @return - Index of the child process
+*/
+int svc_fork(int basePriority, ctx_t* ctx){
+  //Tries to find an empty PCB(as a result of a killed Process)
+  int fillOldPCB = 0; bool found = true;
+  while(pcb[fillOldPCB].active == 1){
+    fillOldPCB++;
+    if(fillOldPCB >= maxProcesses) { found = false; break; }
+  }
+  //If one if found, it is populated with the child process
+  if(found == true) { createPCB(ctx, basePriority, fillOldPCB); return fillOldPCB; }
+  //Else a new PCB is created at the end of the PCB list
+  else { createPCB(ctx, basePriority, maxProcesses); return (maxProcesses-1); }
+}
+
+
+
+/*
+  High level hanlder for SVC (software interrupts).
+*/
 void hilevel_handler_svc(ctx_t* ctx, uint32_t id) {
 
   switch(id){
 
   case 0x00 : { // 0x00 => yield()
+    /*
+      Yield progression of current process. Schedule the next process with respect to priority.
+    */
     priorityScheduler(ctx);
     break;
   }
 
   case 0x01 : { // 0x01 => write( fd, x, n )
+    /*
+      Write to standard output via UART instance.
+
+      @param fd - File descriptor, ignored, always written to UART instance.
+      @param x  - Pointer to string to write into file.
+      @param n  - Characters that exist in the string to be written.
+      @return   - Characters that have been written to the file.
+    */
     int   fd = ( int   )( ctx->gpr[ 0 ] );
     char*  x = ( char* )( ctx->gpr[ 1 ] );
     int    n = ( int   )( ctx->gpr[ 2 ] );
 
-    for(int i = 0; i < n; i++ ) {
-      PL011_putc( UART0, *x++, true );
-    }
+    svc_write(fd, x, n);
 
     ctx->gpr[ 0 ] = n;
     break;
   }
 
-  case 0x03:{ // 0x03 => fork()
-    //Base Priority of is set in the fork system call itself.
+  case 0x03:{ // 0x03 => fork(int basePriority)
+    /*
+       Forks a child process.
+       @param basePriority - Base priority of the child
+       @return - Parent (Id of the child) / Child (0)
+    */
     int basePriority = (int) (ctx ->gpr[0]);
 
-    //Tries to find an empty PCB(as a result of a killed Process), if not creates a new PCB
-    int fillOldPCB = 0; bool found = true;
-    while(pcb[fillOldPCB].active == 1){
-      fillOldPCB++;
-      if(fillOldPCB >= maxProcesses) { found = false; break; }
-    }
-    if(found == true) { createPCB(ctx, basePriority, fillOldPCB); }
-    else { createPCB(ctx, basePriority, maxProcesses); }
+    int index = svc_fork(basePriority, ctx);
+
+    ctx->gpr[0]= pcb[ index ].pid; //Register 0 (Return Value) of Parent is the Process ID of Child
+    pcb[ index ].ctx.gpr[0] = 0; //Register 0 (Return Value) of Child is 0
     break;
   }
+
   case 0x04:{ //0x04 => exit(int x)
+    /*
+      Graceful termination of process
+      @param x - exitStatus, either EXIT_SUCCESS or EXIT_FAILURE, we ignore this and just terminate the process.
+    */
+    int exitStatus = (int) (ctx ->gpr[0]);
     pcb[currentProcess].active = 0;
   }
 
   case 0x05:{ // 0x05 => exec(addr)
-    //Change the SVC Stack "PC" (Context Structure) to the Function Address of "main_P3","main_P4" or "main_P5"
+    /*
+      For the child process, Replaces parents image with that of the childs image (Instructions, usually loaded from memory).
+      Trivially, We set the programs pc to the entry point of the child process image (main function)
+
+      @param addr - Address of the entry point (main function) to the child process image
+    */
+    void* addr = (void*) (ctx ->gpr[0]);
+    //Change the SVC Stack "PC" (Context Structure) to the Function Address of main.
     //Doing SVC Prologue - Virtual "PC" Copied to from SVC Stack to SVC LR and LR is copies to the Actual Program Counter (PC)
-    ctx -> pc = (uint32_t) (ctx ->gpr[0]);
+    ctx -> pc = (uint32_t) addr;
     break;
   }
 
   case 0x06:{ // 0x06 => kill(pid,s)
-
+    /*
+      Kills a process.
+      @param pid - Id of process to be killed.
+      @param s - Ignored.
+    */
     int pid = (int) (ctx ->gpr[0]);
     int x = (int) (ctx ->gpr[1]);
     pcb[pid - 1].active = 0; //Sets the active flag of a Process, the Process can no longer be detected by Scheduler
     break;
   }
 
-  case 0x07:{ // 0x07 => alloc(sourcePID,targetPID)
+  case 0x07:{ // 0x07 => alloc(targetPID)
+    /*
+      Returns the address of a pipe if one exists. Allocated a pipe between processes if it doesn't exist.
+
+      @param targetPID - target process of the pipe
+      @return - | if target process doesn't exist = NULL
+                | if a pipe between source and target process already exists = address of existing pipe
+                | if a pipe doesn't exist source and target processes, creates ones = address of created pipe
+    */
     //Gets Target and Source Processes
     int targetPID = (int) (ctx ->gpr[0]);
 
@@ -182,7 +279,7 @@ void hilevel_handler_svc(ctx_t* ctx, uint32_t id) {
 
     //If the target process exists it has 2 options
     else{
-      //1) Looks for existing PIPE in its PCB
+      //Looks for existing PIPE in its PCB
       bool found = false;
       int index = 0;
       while(index != pcb[currentProcess].npipes){
@@ -192,7 +289,7 @@ void hilevel_handler_svc(ctx_t* ctx, uint32_t id) {
         }
         index++;
       }
-      //Returns existing pipe if it exists
+      //1)Returns existing pipe if it exists
       if(found == true){
         ctx->gpr[0] = (uint32_t) (pcb[currentProcess].pipes[index]);
       }
@@ -218,6 +315,14 @@ void hilevel_handler_svc(ctx_t* ctx, uint32_t id) {
   }
 
   case 0x08:{ // 0x08 => dealloc(pipe_t *pipe)
+    /*
+    Deallocated given pipe if it hasn't already already been deallocated. Doesn't deallocate the pipe if
+    input still exists written to it.
+    @param pipe - Address of the pipe to deallocate
+    @return - | if input still exists written in the pipe = 0
+              | if pipe doesn't exit i.e. has been deallocated previously = 2
+              | if pipe gets deallocated = 1
+    */
       pipe_t *pipe = (pipe_t*) (ctx ->gpr[0]);
 
       //Returns 0 if pipe has data still written in it
@@ -256,6 +361,10 @@ void hilevel_handler_svc(ctx_t* ctx, uint32_t id) {
   }
 
   case 0x09:{ // 0x09 => getid()
+    /*
+      Returns the id of the caller process.
+      @return - Id of current process.
+    */
     int processID = currentProcess + 1;
     ctx ->gpr[0] = processID;
     break;
@@ -263,7 +372,6 @@ void hilevel_handler_svc(ctx_t* ctx, uint32_t id) {
 
 
   default   : { // 0x?? => unknown/unsupported
-    int x;
     break;
   }
 }
