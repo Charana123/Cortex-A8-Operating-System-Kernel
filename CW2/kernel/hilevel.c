@@ -1,7 +1,6 @@
 #include "hilevel.h"
 
 
-//This is a comment
 
 pcb_t pcb[ 100 ], *current = NULL;
 int currentProcess, maxProcesses;
