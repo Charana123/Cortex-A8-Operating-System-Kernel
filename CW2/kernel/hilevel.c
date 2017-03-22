@@ -2,6 +2,7 @@
 
 
 //This is a comment
+//This is a second comment
 
 pcb_t pcb[ 100 ], *current = NULL;
 int currentProcess, maxProcesses;
