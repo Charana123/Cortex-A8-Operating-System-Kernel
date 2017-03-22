@@ -1,10 +1,6 @@
 #include "hilevel.h"
 
-<<<<<<< HEAD
 
-
-=======
->>>>>>> new_branch
 pcb_t pcb[ 100 ], *current = NULL;
 int currentProcess, maxProcesses;
 
