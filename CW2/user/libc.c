@@ -7,13 +7,9 @@ int is_prime( uint32_t x ) {
   if ( !( x & 1 ) || ( x < 2 ) ) {
     return ( x == 2 );
   }
-
   for( uint32_t d = 3; ( d * d ) <= x ; d += 2 ) {
-    if( !( x % d ) ) {
-      return 0;
-    }
+    if( !( x % d ) ) { return 0; }
   }
-
   return 1;
 }
 
@@ -33,13 +29,11 @@ void printInt(int x){
   printString(buffer);
 }
 
-//I need to add a counter in each pipe
-//I need to create a function that sets r0 to counter
-//I need to call sem_post first then sem_wait
-
+//Semaphore pair functions
 extern void sem_post();
 extern void sem_wait();
 
+//Set r0 to semaphore counter
 void setr0(int counter){
   int *pointer = &counter;
   asm ( "mov r0, %0 \n" // assign r0 = pointer
@@ -48,22 +42,22 @@ void setr0(int counter){
       : "r0"  );
 }
 
+//We grab the lock, check the state of the shared memory, return
 int checkRead(pipe_t *pipe, int id){
     setr0(pipe -> sem_counter);
     sem_post();
-    if(pipe -> sourcePID == id){ return pipe -> written2; }
-    return pipe -> written1;
-    sem_wait();
+    if(pipe -> sourcePID == id){ bool temp = pipe -> written2; sem_wait(); return temp; }
+    else { bool temp = pipe -> written1; sem_wait(); return temp; }
 }
 
 int checkWrite(pipe_t *pipe, int id){
     setr0(pipe -> sem_counter);
     sem_post();
-    if(pipe -> written1 || pipe -> written2) { return 0; }
-    return 1;
-    sem_wait();
+    if(pipe -> written1 || pipe -> written2) { sem_wait(); return 0; }
+    else { sem_wait(); return 1; }
 }
 
+//We grab the lock, manipulate (read or write) the shared memory, return
 void lowwritePipe(pipe_t *pipe, int id, int data){
     setr0(pipe -> sem_counter);
     sem_post();
@@ -78,8 +72,9 @@ int lowreadPipe(pipe_t *pipe, int id){
     sem_post();
     if(pipe -> sourcePID == id){ pipe -> written2 = 0; }
     else { pipe -> written1 = 0; }
-    return pipe -> data;
+    int data = pipe -> data;
     sem_wait();
+    return data;
 }
 
 int readPipe(pipe_t *pipe, int id){
