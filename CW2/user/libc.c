@@ -43,45 +43,45 @@ void setr0(int counter){
 }
 
 //We grab the lock, check the state of the shared memory, return
-int checkRead(pipe_t *pipe, int id){
-    setr0(pipe -> sem_counter);
+int checkRead(buffer_t *buffer, int id){
+    setr0(buffer -> sem_counter);
     sem_post();
-    if(pipe -> sourcePID == id){ bool temp = pipe -> written2; sem_wait(); return temp; }
-    else { bool temp = pipe -> written1; sem_wait(); return temp; }
+    if(buffer -> sourcePID == id){ bool temp = buffer -> written2; sem_wait(); return temp; }
+    else { bool temp = buffer -> written1; sem_wait(); return temp; }
 }
 
-int checkWrite(pipe_t *pipe, int id){
-    setr0(pipe -> sem_counter);
+int checkWrite(buffer_t *buffer, int id){
+    setr0(buffer -> sem_counter);
     sem_post();
-    if(pipe -> written1 || pipe -> written2) { sem_wait(); return 0; }
+    if(buffer -> written1 || buffer -> written2) { sem_wait(); return 0; }
     else { sem_wait(); return 1; }
 }
 
 //We grab the lock, manipulate (read or write) the shared memory, return
-void lowwritePipe(pipe_t *pipe, int id, int data){
-    setr0(pipe -> sem_counter);
+void lowwriteBuffer(buffer_t *buffer, int id, int data){
+    setr0(buffer -> sem_counter);
     sem_post();
-    pipe -> data = data;
-    if(pipe -> sourcePID == id){ pipe -> written1 = 1; }
-    else { pipe -> written2 = 1; }
+    buffer -> data = data;
+    if(buffer -> sourcePID == id){ buffer -> written1 = 1; }
+    else { buffer -> written2 = 1; }
     sem_wait();
 }
 
-int lowreadPipe(pipe_t *pipe, int id){
-    setr0(pipe -> sem_counter);
+int lowreadBuffer(buffer_t *buffer, int id){
+    setr0(buffer -> sem_counter);
     sem_post();
-    if(pipe -> sourcePID == id){ pipe -> written2 = 0; }
-    else { pipe -> written1 = 0; }
-    int data = pipe -> data;
+    if(buffer -> sourcePID == id){ buffer -> written2 = 0; }
+    else { buffer -> written1 = 0; }
+    int data = buffer -> data;
     sem_wait();
     return data;
 }
 
-int readPipe(pipe_t *pipe, int id){
+int readBuffer(buffer_t *buffer, int id){
   int data;
   while(1){
-    if(checkRead(pipe,id) == 1){
-        data = lowreadPipe(pipe,id);
+    if(checkRead(buffer,id) == 1){
+        data = lowreadBuffer(buffer,id);
         break;
     }
     sleep(1);
@@ -89,10 +89,10 @@ int readPipe(pipe_t *pipe, int id){
   return data;
 }
 
-void writePipe(pipe_t *pipe, int id, int data){
+void writeBuffer(buffer_t *buffer, int id, int data){
   while(1){
-    if(checkWrite(pipe, id) == 1){
-      lowwritePipe(pipe,id,data);
+    if(checkWrite(buffer, id) == 1){
+      lowwriteBuffer(buffer,id,data);
       break;
     }
     sleep(1);
@@ -103,33 +103,7 @@ void sleep(int freq){
   for(int i = 0; i < freq *  16000000; i++) {}
 }
 
-// void writePipe(int id, pipe_t *pipe, int data){
-//   while( (pipe -> written1 == true) || (pipe -> written2 == true) ){ yield();  }
-//   pipe -> data = data;
-//   if(id == pipe -> sourcePID){
-//       pipe -> written1 = true;
-//       while(pipe -> written1 == true){ yield(); }
-//   }
-//   if(id == pipe -> targetPID){
-//       pipe -> written2 = true;
-//       while(pipe -> written2 == true){ yield(); }
-//   }
-// }
-//
-// //Waits till written, Read froms pipe
-// int readPipe(int id, pipe_t *pipe){
-//   if(id == pipe -> sourcePID){
-//     while(pipe -> written2 == false) { yield();  }
-//     pipe -> written2 = false;
-//   }
-//   if(id == pipe -> targetPID){
-//     while(pipe -> written1 == false) { yield();  }
-//     pipe -> written1 = false;
-//   }
-//   int data = pipe -> data;
-//   return data;
-// }
-
+//SVC CALLS
 void yield() {
   asm volatile( "svc %0     \n" // make system call SYS_YIELD
               :
@@ -218,8 +192,8 @@ int kill( int pid, int x ) {
   return r;
 }
 
-pipe_t *alloc(int targetPID) {
-  pipe_t *r;
+buffer_t *alloc(int targetPID) {
+  buffer_t *r;
   asm volatile( "mov r0, %2 \n" // assign r0 = targetPID
                 "svc %1     \n" // make system call SYS_ALLOC
                 "mov %0, r0 \n" // assign r = r0
@@ -229,13 +203,13 @@ pipe_t *alloc(int targetPID) {
   return r;
 }
 
-int dealloc(pipe_t *pipe){
+int dealloc(buffer_t *buffer){
   int r;
-  asm volatile( "mov r0, %2 \n" // assign r0 = pipe
+  asm volatile( "mov r0, %2 \n" // assign r0 = buffer
                 "svc %1     \n" // make system call SYS_DEALLOC
                 "mov %0, r0 \n" // assign r = r0
               : "=r" (r)
-              : "I" (SYS_DEALLOC), "r" (pipe)
+              : "I" (SYS_DEALLOC), "r" (buffer)
               : "r0");
   return r;
 }

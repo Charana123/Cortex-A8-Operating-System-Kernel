@@ -29,8 +29,8 @@ void hilevel_handler_rst(ctx_t* ctx) {
   pcb[ 0 ].ctx.pc   = ( uint32_t )( &main_console );
   pcb[ 0 ].ctx.sp   = ( uint32_t )( &tos_console  );
   pcb[ 0 ].active   = 1;
-  pcb[ 0 ].pipes = NULL;
-  pcb[ 0 ].npipes = 0;
+  pcb[ 0 ].buffers = NULL;
+  pcb[ 0 ].nbuffers = 0;
 
   //Configure the Timer for Frequency IRQ Hardware Interrupts
   TIMER0->Timer1Load  = 0x00100000; // select period = 2^20 ticks ~= 1 sec
@@ -64,7 +64,7 @@ void hilevel_handler_irq(ctx_t* ctx) {
 
   //Perform a Context Switch via Scheduler call on intermittent IRQ Interrupts
   if( id == GIC_SOURCE_TIMER0 ) {
-    currentProcess = priorityScheduler(ctx);
+    currentProcess = priorityScheduler(ctx, pcb, currentProcess, maxProcesses);
     TIMER0->Timer1IntClr = 0x01;
   }
 
@@ -105,8 +105,8 @@ void createPCB(ctx_t* ctx, int basePriority, int index){
   pcb[index].active = 1; // This states the program is active
   pcb[index].basePriority = basePriority;
   pcb[index].effectivePriority = pcb[index].basePriority;
-  pcb[index].pipes = NULL;
-  pcb[index].npipes = 0;
+  pcb[index].buffers = NULL;
+  pcb[index].nbuffers = 0;
 
   //Copy Execution Context of Parent of Child
   memcpy( &pcb[ index ].ctx, ctx, sizeof( ctx_t ) );
@@ -145,7 +145,7 @@ void hilevel_handler_svc(ctx_t* ctx, uint32_t id) {
     /*
       Yield progression of current process. Schedule the next process with respect to priority.
     */
-    currentProcess = priorityScheduler(ctx);
+    currentProcess = priorityScheduler(ctx, pcb, currentProcess, maxProcesses);
     break;
   }
 
@@ -220,12 +220,12 @@ void hilevel_handler_svc(ctx_t* ctx, uint32_t id) {
 
   case 0x07:{ // 0x07 => alloc(targetPID)
     /*
-      Returns the address of a pipe if one exists. Allocated a pipe between processes if it doesn't exist.
+      Returns the address of a buffer if one exists. Allocated a buffer between processes if it doesn't exist.
 
-      @param targetPID - target process of the pipe
+      @param targetPID - target process of the buffer
       @return - | if target process doesn't exist = NULL
-                | if a pipe between source and target process already exists = address of existing pipe
-                | if a pipe doesn't exist source and target processes, creates ones = address of created pipe
+                | if a buffer between source and target process already exists = address of existing buffer
+                | if a buffer doesn't exist source and target processes, creates ones = address of created buffer
     */
     //Gets Target and Source Processes
     int targetPID = (int) (ctx ->gpr[0]);
@@ -240,78 +240,78 @@ void hilevel_handler_svc(ctx_t* ctx, uint32_t id) {
       //Looks for existing PIPE in its PCB
       bool found = false;
       int index = 0;
-      while(index != pcb[currentProcess].npipes){
-        if( (pcb[currentProcess].pipes[index] -> targetPID) == (currentProcess + 1) ){
+      while(index != pcb[currentProcess].nbuffers){
+        if( (pcb[currentProcess].buffers[index] -> targetPID) == (currentProcess + 1) ){
           found = true;
           break;
         }
         index++;
       }
-      //1)Returns existing pipe if it exists
+      //1)Returns existing buffer if it exists
       if(found == true){
-        ctx->gpr[0] = (uint32_t) (pcb[currentProcess].pipes[index]);
+        ctx->gpr[0] = (uint32_t) (pcb[currentProcess].buffers[index]);
       }
 
-      //2) Allocates a pipe in target process PCB
+      //2) Allocates a buffer in target process PCB
       if(found == false){
-        pcb[targetPID - 1].npipes++;
-        pcb[targetPID - 1].pipes = realloc(pcb[targetPID - 1].pipes, pcb[targetPID - 1].npipes * sizeof(pipe_t*));
-        index = pcb[targetPID - 1].npipes - 1;
+        pcb[targetPID - 1].nbuffers++;
+        pcb[targetPID - 1].buffers = realloc(pcb[targetPID - 1].buffers, pcb[targetPID - 1].nbuffers * sizeof(buffer_t*));
+        index = pcb[targetPID - 1].nbuffers - 1;
 
-        pcb[targetPID - 1].pipes[index] = calloc(1,sizeof(pipe_t));
-        pcb[targetPID - 1].pipes[index] -> sourcePID = currentProcess + 1;
-        pcb[targetPID - 1].pipes[index] -> targetPID = targetPID;
-        pcb[targetPID - 1].pipes[index] -> written1 = 0;
-        pcb[targetPID - 1].pipes[index] -> written2 = 0;
-        pcb[targetPID - 1].pipes[index] -> sem_counter = 1;
+        pcb[targetPID - 1].buffers[index] = calloc(1,sizeof(buffer_t));
+        pcb[targetPID - 1].buffers[index] -> sourcePID = currentProcess + 1;
+        pcb[targetPID - 1].buffers[index] -> targetPID = targetPID;
+        pcb[targetPID - 1].buffers[index] -> written1 = 0;
+        pcb[targetPID - 1].buffers[index] -> written2 = 0;
+        pcb[targetPID - 1].buffers[index] -> sem_counter = 1;
 
-        ctx->gpr[0] = (uint32_t) (pcb[targetPID - 1].pipes[index]);
+        ctx->gpr[0] = (uint32_t) (pcb[targetPID - 1].buffers[index]);
       }
     }
 
     break;
   }
 
-  case 0x08:{ // 0x08 => dealloc(pipe_t *pipe)
+  case 0x08:{ // 0x08 => dealloc(buffer_t *buffer)
     /*
-    Deallocated given pipe if it hasn't already already been deallocated. Doesn't deallocate the pipe if
+    Deallocated given buffer if it hasn't already already been deallocated. Doesn't deallocate the buffer if
     input still exists written to it.
-    @param pipe - Address of the pipe to deallocate
-    @return - | if input still exists written in the pipe = 0
-              | if pipe doesn't exit i.e. has been deallocated previously = 2
-              | if pipe gets deallocated = 1
+    @param buffer - Address of the buffer to deallocate
+    @return - | if input still exists written in the buffer = 0
+              | if buffer doesn't exit i.e. has been deallocated previously = 2
+              | if buffer gets deallocated = 1
     */
-      pipe_t *pipe = (pipe_t*) (ctx ->gpr[0]);
+      buffer_t *buffer = (buffer_t*) (ctx ->gpr[0]);
 
-      //Returns 0 if pipe has data still written in it
-      if(pipe -> written1 || pipe -> written2 ){
+      //Returns 0 if buffer has data still written in it
+      if(buffer -> written1 || buffer -> written2 ){
         ctx->gpr[0] = 0;
       }
 
       else {
-        //Looks in target process for pipe
+        //Looks in target process for buffer
         int index = 0;
-        while(index != pcb[pipe->targetPID - 1].npipes){
-          if(pcb[pipe->targetPID - 1].pipes[index] == pipe) { break; }
+        while(index != pcb[buffer->targetPID - 1].nbuffers){
+          if(pcb[buffer->targetPID - 1].buffers[index] == buffer) { break; }
           index++;
         }
-        //Returns 2 if pipe didn't exist (previously deallocated)
-        if(index == pcb[pipe->targetPID - 1].npipes){
+        //Returns 2 if buffer didn't exist (previously deallocated)
+        if(index == pcb[buffer->targetPID - 1].nbuffers){
           ctx->gpr[0] = 2;
         }
-        //Returns 1 if pipe does exist and got deallocated
+        //Returns 1 if buffer does exist and got deallocated
         else{
-          //Free the pipe_t structure
-          free(pcb[pipe->targetPID - 1].pipes[index]);
-          //Swap pipe_t pointer index until it gets to the end of list
-          for(int i = index; i < pcb[pipe->targetPID - 1].npipes - 1; i++ ){
-            pipe_t *temp = pcb[pipe->targetPID - 1].pipes[index];
-            pcb[pipe->targetPID - 1].pipes[index] = pcb[pipe->targetPID - 1].pipes[index + 1];
-            pcb[pipe->targetPID - 1].pipes[index + 1] = temp;
+          //Free the buffer_t structure
+          free(pcb[buffer->targetPID - 1].buffers[index]);
+          //Swap buffer_t pointer index until it gets to the end of list
+          for(int i = index; i < pcb[buffer->targetPID - 1].nbuffers - 1; i++ ){
+            buffer_t *temp = pcb[buffer->targetPID - 1].buffers[index];
+            pcb[buffer->targetPID - 1].buffers[index] = pcb[buffer->targetPID - 1].buffers[index + 1];
+            pcb[buffer->targetPID - 1].buffers[index + 1] = temp;
           }
-          pcb[pipe->targetPID - 1].npipes--;
-          //Realloc size of the pipes structure (reduce size)
-          pcb[pipe->targetPID - 1].pipes = realloc(pcb[pipe->targetPID - 1].pipes, pcb[pipe->targetPID - 1].npipes * sizeof(pipe_t*));
+          pcb[buffer->targetPID - 1].nbuffers--;
+          //Realloc size of the buffers structure (reduce size)
+          pcb[buffer->targetPID - 1].buffers = realloc(pcb[buffer->targetPID - 1].buffers, pcb[buffer->targetPID - 1].nbuffers * sizeof(buffer_t*));
           ctx->gpr[0] = 1;
         }
       }
@@ -330,6 +330,7 @@ void hilevel_handler_svc(ctx_t* ctx, uint32_t id) {
 
 
   default   : { // 0x?? => unknown/unsupported
+    int y;
     break;
   }
 }

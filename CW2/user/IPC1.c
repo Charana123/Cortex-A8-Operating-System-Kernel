@@ -15,22 +15,22 @@ void main_IPC1() {
       }
   }
 
-  //Allocates pipe with master
-  pipe_t *pipe = alloc(idOfMaster);
+  //Allocates buffer with master
+  buffer_t *buffer = alloc(idOfMaster);
   printString("Philosopher Process");
   printInt(id);
-  printString(":Allocated Pipe-\n");
+  printString(":Allocated Buffer-\n");
 
   while(1){
     //Asks for forks
-    writePipe(pipe,id,1);
-    int data = readPipe(pipe, id);
+    writeBuffer(buffer,id,1);
+    int data = readBuffer(buffer, id);
     if(data == 1){
       printString("Philosopher Process");
       printInt(id);
       printString("-Started Eating\n");
       //Gives back forks
-      writePipe(pipe,id,0);
+      writeBuffer(buffer,id,0);
     }
     if(data == 0){
       printString("Philosopher Process");

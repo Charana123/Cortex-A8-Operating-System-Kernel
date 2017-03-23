@@ -14,15 +14,15 @@ void main_test() {
       }
   }
 
-  //Allocates pipe with master
-  pipe_t *pipe = NULL;
-  if(id % 2 == 0) { pipe = alloc(id + 1); }
-  else { pipe = alloc(id - 1); }
+  //Allocates buffer with master
+  buffer_t *buffer = NULL;
+  if(id % 2 == 0) { buffer = alloc(id + 1); }
+  else { buffer = alloc(id - 1); }
 
-  if(id % 2 == 0) { writePipe(pipe,id,999); }
+  if(id % 2 == 0) { writeBuffer(buffer,id,999); }
 
   else {
-    int data = readPipe(pipe,id);
+    int data = readBuffer(buffer,id);
     printString("Data-");
     printInt(data);
     printString("\n");
@@ -30,7 +30,7 @@ void main_test() {
 
   if(id % 2 == 0){
     while(1){
-      int r = dealloc(pipe);
+      int r = dealloc(buffer);
       if(r != 0) {
         printString("Deallocation-");
         printInt(r);
@@ -41,7 +41,7 @@ void main_test() {
   }
   else{
     while(1){
-      int r = dealloc(pipe);
+      int r = dealloc(buffer);
       if(r != 0) {
         printString("Deallocation-");
         printInt(r);

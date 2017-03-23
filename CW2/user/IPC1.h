@@ -7,7 +7,7 @@
 #include <stdlib.h>
 
 #include "libc.h"
-#include "pipe.h"
+#include "buffer.h"
 
 
 

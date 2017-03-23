@@ -6,7 +6,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <time.h>
-#include "pipe.h"
+#include "buffer.h"
 
 // Define a type that that captures a Process IDentifier (PID).
 
@@ -34,7 +34,7 @@ typedef int pid_t;
 #define SYS_EXEC       ( 0x05 )
 #define SYS_KILL       ( 0x06 )
 
-//Pipe SVC calls
+//Buffer SVC calls
 #define SYS_ALLOC      ( 0x07 )
 #define SYS_DEALLOC    ( 0x08 )
 #define SYS_GETID      ( 0x09 )
@@ -81,22 +81,22 @@ extern int  kill( pid_t pid, int x );
 extern void printInt(int x);
 //Prints String via UART instance
 extern void printString(char *pointer);
-//Allocates Pipe in PCB of targetPID, returns pipe file descriptor (pointer)
-extern pipe_t *alloc(int targetPID);
-//Deallocates a pipe
-extern int dealloc(pipe_t *pipe);
+//Allocates Buffer in PCB of targetPID, returns buffer file descriptor (pointer)
+extern buffer_t *alloc(int targetPID);
+//Deallocates a buffer
+extern int dealloc(buffer_t *buffer);
 //Returns PID of the caller process
 extern int getid();
 //Is a number prime
 extern int is_prime( uint32_t x );
-//Read from pipe
-extern int readPipe(pipe_t *pipe, int id);
-//Write into Pipe
-extern void writePipe(pipe_t *pipe, int id, int data);
-//Checks if pipe can be written into
-extern int checkWrite(pipe_t *pipe, int id);
-//Checks if data is present in pipe to read
-extern int checkRead(pipe_t *pipe, int id);
+//Read from buffer
+extern int readBuffer(buffer_t *buffer, int id);
+//Write into Buffer
+extern void writeBuffer(buffer_t *buffer, int id, int data);
+//Checks if buffer can be written into
+extern int checkWrite(buffer_t *buffer, int id);
+//Checks if data is present in buffer to read
+extern int checkRead(buffer_t *buffer, int id);
 //Sleep function
 extern void sleep(int freq);
 //-------------------------------------------------------------------------------------------

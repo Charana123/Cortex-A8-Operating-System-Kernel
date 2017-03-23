@@ -6,5 +6,6 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include "libc.h"
+#include "buffer.h"
 
 #endif

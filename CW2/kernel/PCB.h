@@ -1,6 +1,10 @@
 #ifndef __PCB_H
 #define __PCB_H
 
+//Imports
+#include "buffer.h"
+#include <stdbool.h>
+#include <stdint.h>
 
 /* The kernel source code is made simpler via three type definitions:
  *
@@ -28,8 +32,8 @@ typedef struct {
   int active;
   int basePriority;
   int effectivePriority;
-  pipe_t **pipes;
-  int npipes;
+  buffer_t **buffers;
+  int nbuffers;
 } pcb_t;
 
 #endif
