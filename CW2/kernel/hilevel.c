@@ -4,44 +4,6 @@
 pcb_t pcb[ 100 ], *current = NULL;
 int currentProcess, maxProcesses;
 
-
-//Priority Scheduler
-/*
-  Deschedules currently running process and Schedules next highest priority process.
-
-  @param ctx - Context of current running process to be saved to its respective PCB.
-*/
-void priorityScheduler(ctx_t* ctx){
-  //Process Ageing
-  //During every IRQ interrupt, For every process that did not run that turn, its effective priority is incremented.
-  //The process that did run that turn is reset to its base priority.
-  for(int index=0; index<maxProcesses; index++){
-    if(index == currentProcess) {
-      pcb[index].effectivePriority = pcb[index].basePriority;
-      continue;
-    }
-    pcb[index].effectivePriority = pcb[index].effectivePriority + 1;
-  }
-
-  /* Saves curent Execution Context from the SVC Stack (Register State + PC + LR + CSPR)
-     and save into PCB Data Structure */
-   memcpy( &pcb[currentProcess].ctx, ctx, sizeof( ctx_t ) );
-
-   //Find highest priority process
-   for(int index=0; index<maxProcesses; index++){
-     if(pcb[index].active == 0) { continue; }
-     if(pcb[index].effectivePriority > pcb[currentProcess].effectivePriority){
-       currentProcess = index;
-     }
-   }
-   memcpy( ctx, &pcb[currentProcess].ctx, sizeof( ctx_t ) );
-
-   //No idea why this is useful || relevant to keep track of
-   current = &pcb[currentProcess];
-}
-
-
-
 // Address to a program's main() function entry point to the program main
 // Address to top of program's allocated stack space
 extern void     main_console();
@@ -102,7 +64,7 @@ void hilevel_handler_irq(ctx_t* ctx) {
 
   //Perform a Context Switch via Scheduler call on intermittent IRQ Interrupts
   if( id == GIC_SOURCE_TIMER0 ) {
-    priorityScheduler(ctx);
+    currentProcess = priorityScheduler(ctx);
     TIMER0->Timer1IntClr = 0x01;
   }
 
@@ -183,7 +145,7 @@ void hilevel_handler_svc(ctx_t* ctx, uint32_t id) {
     /*
       Yield progression of current process. Schedule the next process with respect to priority.
     */
-    priorityScheduler(ctx);
+    currentProcess = priorityScheduler(ctx);
     break;
   }
 
