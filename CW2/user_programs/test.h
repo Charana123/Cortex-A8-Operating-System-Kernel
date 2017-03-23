@@ -7,5 +7,6 @@
 #include <stdlib.h>
 #include "libc.h"
 #include "buffer.h"
+#include "svc_calls.h"
 
 #endif

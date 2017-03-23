@@ -1,6 +1,5 @@
 #include "libc.h"
-#include <sys/types.h>
-#include <errno.h>
+
 
 
 int is_prime( uint32_t x ) {
@@ -12,7 +11,6 @@ int is_prime( uint32_t x ) {
   }
   return 1;
 }
-
 
 void printString(char *string){
   for(int i = 0; string[i] != '\0'; i++ ) {

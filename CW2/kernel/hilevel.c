@@ -1,7 +1,7 @@
 #include "hilevel.h"
 
-
-pcb_t pcb[ 100 ], *current = NULL;
+//Globals
+pcb_t pcb[ 100 ];
 int currentProcess, maxProcesses;
 
 // Address to a program's main() function entry point to the program main
@@ -15,8 +15,7 @@ extern uint32_t tos_console;
 void hilevel_handler_rst(ctx_t* ctx) {
 
   //Global variable intializations
-  current = &pcb[ 0 ];
-  memcpy( ctx, &current->ctx, sizeof( ctx_t ) );
+  memcpy(ctx, &(pcb[0].ctx), sizeof( ctx_t ) );
   maxProcesses = 1;
   currentProcess = 0;
 
@@ -32,7 +31,7 @@ void hilevel_handler_rst(ctx_t* ctx) {
   pcb[ 0 ].buffers = NULL;
   pcb[ 0 ].nbuffers = 0;
 
-  //Configure the Timer for Frequency IRQ Hardware Interrupts
+  //Configure the Timer for intermittent IRQ Hardware Interrupts
   TIMER0->Timer1Load  = 0x00100000; // select period = 2^20 ticks ~= 1 sec
   TIMER0->Timer1Ctrl  = 0x00000002; // select 32-bit   timer
   TIMER0->Timer1Ctrl |= 0x00000040; // select periodic timer
@@ -268,9 +267,7 @@ void hilevel_handler_svc(ctx_t* ctx, uint32_t id) {
     break;
   }
 
-
   default   : { // 0x?? => unknown/unsupported
-    int y;
     break;
   }
 }

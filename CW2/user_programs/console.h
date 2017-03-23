@@ -9,5 +9,6 @@
 
 #include "PL011.h"
 #include "libc.h"
+#include "svc_calls.h"
 
 #endif
