@@ -73,67 +73,6 @@ void hilevel_handler_irq(ctx_t* ctx) {
   return;
 }
 
-
-
-//SVC Handlers
-
-/*
-  Writes to a file.
-
-  @param fd - File descriptor of file to write to.
-  @param x  - Pointer to string to write into file.
-  @param n  - Characters that exist in the string to be written.
-*/
-void svc_write(int fd, char *x, int n){
-  for(int i = 0; i < n; i++ ) {
-    PL011_putc( UART0, *x++, true );
-  }
-}
-
-/*
-  Creates a PCB (Process Block) entry for a newly created process. Used during a fork system call for creation of child
-  process.
-
-  @param ctx - Context, SVC stack pointer (state of gprs) to be copied to the newly created process.
-               Context is that of the parent process.
-  @param basePriority - Base priority of the newly created process. Given to child by parent process.
-  @param index - Index in the PCB Table that the newly created Process Block exists.
-*/
-void createPCB(ctx_t* ctx, int basePriority, int index){
-  memset( &pcb[ index ], 0, sizeof( pcb_t ) );
-  pcb[index].pid = index + 1; // Gives the process an id
-  pcb[index].active = 1; // This states the program is active
-  pcb[index].basePriority = basePriority;
-  pcb[index].effectivePriority = pcb[index].basePriority;
-  pcb[index].buffers = NULL;
-  pcb[index].nbuffers = 0;
-
-  //Copy Execution Context of Parent of Child
-  memcpy( &pcb[ index ].ctx, ctx, sizeof( ctx_t ) );
-  pcb[ index ].ctx.sp   = ( uint32_t ) pcb[index-1].ctx.sp + 0x00001000; //Allocate Stack Space
-  if(index == maxProcesses) { maxProcesses++; }
-}
-
-/*
-  Forks a child process.
-  @param basePriority - Base priority of the child process.
-  @return - Index of the child process
-*/
-int svc_fork(int basePriority, ctx_t* ctx){
-  //Tries to find an empty PCB(as a result of a killed Process)
-  int fillOldPCB = 0; bool found = true;
-  while(pcb[fillOldPCB].active == 1){
-    fillOldPCB++;
-    if(fillOldPCB >= maxProcesses) { found = false; break; }
-  }
-  //If one if found, it is populated with the child process
-  if(found == true) { createPCB(ctx, basePriority, fillOldPCB); return fillOldPCB; }
-  //Else a new PCB is created at the end of the PCB list
-  else { createPCB(ctx, basePriority, maxProcesses); return (maxProcesses-1); }
-}
-
-
-
 /*
   High level hanlder for SVC (software interrupts).
 */
@@ -162,7 +101,7 @@ void hilevel_handler_svc(ctx_t* ctx, uint32_t id) {
     char*  x = ( char* )( ctx->gpr[ 1 ] );
     int    n = ( int   )( ctx->gpr[ 2 ] );
 
-    svc_write(fd, x, n);
+    printString(x);
 
     ctx->gpr[ 0 ] = n;
     break;
@@ -176,7 +115,8 @@ void hilevel_handler_svc(ctx_t* ctx, uint32_t id) {
     */
     int basePriority = (int) (ctx ->gpr[0]);
 
-    int index = svc_fork(basePriority, ctx);
+    int index = svc_fork(basePriority, ctx, pcb, maxProcesses);
+    maxProcesses++;
 
     ctx->gpr[0]= pcb[ index ].pid; //Register 0 (Return Value) of Parent is the Process ID of Child
     pcb[ index ].ctx.gpr[0] = 0; //Register 0 (Return Value) of Child is 0

@@ -6,6 +6,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include "libc.h"
+#include "IPC.h"
 #include "buffer.h"
 
 

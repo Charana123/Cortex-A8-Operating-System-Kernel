@@ -1,4 +1,4 @@
-#include "IPC1.h"
+#include "philosophers.h"
 
 int idOfMaster = 2;
 

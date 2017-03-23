@@ -1,5 +1,5 @@
-#ifndef __IPC1_H
-#define __IPC1_H
+#ifndef __PHILOSOPHERS_H
+#define __PHILOSOPHERS_H
 
 #include <stdbool.h>
 #include <stddef.h>
@@ -7,8 +7,8 @@
 #include <stdlib.h>
 
 #include "libc.h"
+#include "IPC.h"
 #include "buffer.h"
-
 
 
 #endif

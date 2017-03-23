@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include "buffer.h"
+#include "PL011.h"
 
 // Define a type that that captures a Process IDentifier (PID).
 

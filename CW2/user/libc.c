@@ -14,13 +14,10 @@ int is_prime( uint32_t x ) {
 }
 
 
-
-void printString(char *pointer){
-  int characters = 0;
-  while(pointer[characters] != '\0'){
-      characters++;
+void printString(char *string){
+  for(int i = 0; string[i] != '\0'; i++ ) {
+    PL011_putc( UART0, *(string + i), true );
   }
-  write(STDOUT_FILENO, pointer, characters);
 }
 
 void printInt(int x){
@@ -29,79 +26,13 @@ void printInt(int x){
   printString(buffer);
 }
 
-//Semaphore pair functions
-extern void sem_post();
-extern void sem_wait();
-
-//Set r0 to semaphore counter
-void setr0(int counter){
-  int *pointer = &counter;
-  asm ( "mov r0, %0 \n" // assign r0 = pointer
-      :
-      : "r" (pointer)
-      : "r0"  );
-}
-
-//We grab the lock, check the state of the shared memory, return
-int checkRead(buffer_t *buffer, int id){
-    setr0(buffer -> sem_counter);
-    sem_post();
-    if(buffer -> sourcePID == id){ bool temp = buffer -> written2; sem_wait(); return temp; }
-    else { bool temp = buffer -> written1; sem_wait(); return temp; }
-}
-
-int checkWrite(buffer_t *buffer, int id){
-    setr0(buffer -> sem_counter);
-    sem_post();
-    if(buffer -> written1 || buffer -> written2) { sem_wait(); return 0; }
-    else { sem_wait(); return 1; }
-}
-
-//We grab the lock, manipulate (read or write) the shared memory, return
-void lowwriteBuffer(buffer_t *buffer, int id, int data){
-    setr0(buffer -> sem_counter);
-    sem_post();
-    buffer -> data = data;
-    if(buffer -> sourcePID == id){ buffer -> written1 = 1; }
-    else { buffer -> written2 = 1; }
-    sem_wait();
-}
-
-int lowreadBuffer(buffer_t *buffer, int id){
-    setr0(buffer -> sem_counter);
-    sem_post();
-    if(buffer -> sourcePID == id){ buffer -> written2 = 0; }
-    else { buffer -> written1 = 0; }
-    int data = buffer -> data;
-    sem_wait();
-    return data;
-}
-
-int readBuffer(buffer_t *buffer, int id){
-  int data;
-  while(1){
-    if(checkRead(buffer,id) == 1){
-        data = lowreadBuffer(buffer,id);
-        break;
-    }
-    sleep(1);
-  }
-  return data;
-}
-
-void writeBuffer(buffer_t *buffer, int id, int data){
-  while(1){
-    if(checkWrite(buffer, id) == 1){
-      lowwriteBuffer(buffer,id,data);
-      break;
-    }
-    sleep(1);
-  }
-}
+//Sleep function
+//extern void sleep(int freq);
 
 void sleep(int freq){
   for(int i = 0; i < freq *  16000000; i++) {}
 }
+
 
 //SVC CALLS
 void yield() {

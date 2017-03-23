@@ -19,6 +19,7 @@
 #include "buffer.h"
 #include "PCB.h"
 #include "scheduler.h"
+#include "SVC_calls.h"
 
 
 
