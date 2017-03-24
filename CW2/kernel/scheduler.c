@@ -5,7 +5,7 @@
   The process that ran before an invocation of the schedular - Effective priority is sent back to its base priority.
   Processes that did not run that turn - Effective priority is incremented
 */
-void updatePriorities(pcb_t *pcb, int currentProcess, int maxProcesses){
+static void updatePriorities(pcb_t *pcb, int currentProcess, int maxProcesses){
   for(int i=0; i<maxProcesses; i++){
     if(i == currentProcess) { pcb[i].effectivePriority = pcb[i].basePriority; continue; }
     pcb[i].effectivePriority = pcb[i].effectivePriority + 1;
@@ -15,7 +15,7 @@ void updatePriorities(pcb_t *pcb, int currentProcess, int maxProcesses){
 /*
   Next highest priority process to be scheduled
 */
-int nextProcess(pcb_t *pcb, int maxProcesses){
+static int nextProcess(pcb_t *pcb, int maxProcesses){
   //Find highest priority process
   int highestPriorityProcess = 0;
   for(int i=0; i<maxProcesses; i++){

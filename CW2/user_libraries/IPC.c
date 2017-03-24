@@ -9,7 +9,7 @@ extern void sem_wait();
 
   @param sem_counter - value of the semaphore counter
 */
-void setr0(int sem_counter){
+static void setr0(int sem_counter){
   int *temp = &sem_counter;
   asm ( "mov r0, %0 \n" // assign r0 = pointer
       :
@@ -24,7 +24,7 @@ void setr0(int sem_counter){
   @return - | If data exists read from the opposite process = true
             | otherwise = false
 */
-int checkRead(buffer_t *buffer, int id){
+static int checkRead(buffer_t *buffer, int id){
     setr0(buffer -> sem_counter);
     sem_post();
     if(buffer -> sourcePID == id){ bool temp = buffer -> written2; sem_wait(); return temp; }
@@ -38,7 +38,7 @@ int checkRead(buffer_t *buffer, int id){
   @return - | If data exists written from the opposite process = true
             | otherwise = false
 */
-int checkWrite(buffer_t *buffer, int id){
+static int checkWrite(buffer_t *buffer, int id){
     setr0(buffer -> sem_counter);
     sem_post();
     if(buffer -> written1 || buffer -> written2) { sem_wait(); return 0; }
@@ -51,7 +51,7 @@ int checkWrite(buffer_t *buffer, int id){
   @param id - ID of the process that is requesting to write to the buffer (either source or destination)
   @param data - Data to be written to the buffer
 */
-void lowwriteBuffer(buffer_t *buffer, int id, int data){
+static void lowwriteBuffer(buffer_t *buffer, int id, int data){
     setr0(buffer -> sem_counter);
     sem_post();
     buffer -> data = data;
@@ -65,7 +65,7 @@ void lowwriteBuffer(buffer_t *buffer, int id, int data){
   @param buffer - Reference to the buffer in question
   @param id - ID of the process that is requesting to read to the buffer (either source or destination)
 */
-int lowreadBuffer(buffer_t *buffer, int id){
+static int lowreadBuffer(buffer_t *buffer, int id){
     setr0(buffer -> sem_counter);
     sem_post();
     if(buffer -> sourcePID == id){ buffer -> written2 = 0; }
