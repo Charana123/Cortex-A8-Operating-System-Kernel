@@ -2,8 +2,7 @@
 #define __LIBC_H
 
 #include <stdbool.h>
-#include <stddef.h>
-#include <stdint.h>
+#include <stdlib.h>
 #include "PL011.h"
 
 //Prints a Integer via itoa then UART instance

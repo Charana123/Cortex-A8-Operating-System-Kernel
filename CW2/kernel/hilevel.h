@@ -5,7 +5,6 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <string.h>
-#include <stdlib.h>
 
 // Include functionality relating to the platform.
 #include   "GIC.h"

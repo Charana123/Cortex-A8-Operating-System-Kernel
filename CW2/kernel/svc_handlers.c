@@ -37,3 +37,75 @@ int svc_fork(int basePriority, ctx_t* ctx, pcb_t *pcb, int maxProcesses){
   //Else a new PCB is created at the end of the PCB list
   else { createPCB(ctx, pcb, basePriority, nextFreePCB, maxProcesses); return maxProcesses; }
 }
+
+
+buffer_t* svc_alloc(int targetPID, pcb_t *pcb, int currentProcess){
+  //returns NULL If the target process doesn't exist
+  if(pcb[targetPID - 1].active == 0) { return NULL; }
+
+  //If the target process exists it has 2 options
+  else{
+    //Looks for existing PIPE in its PCB
+    bool allocatedPipeExists = false; int existingPipeIndex = 0;
+    while(existingPipeIndex != pcb[currentProcess].nbuffers){
+      if( (pcb[currentProcess].buffers[existingPipeIndex] -> targetPID) == (currentProcess + 1) ) { allocatedPipeExists = true; break; }
+      existingPipeIndex++;
+    }
+    //1)Returns existing buffer if it exists
+    if(allocatedPipeExists == true){ return pcb[currentProcess].buffers[existingPipeIndex]; }
+
+    //2) Allocates a buffer in target process PCB
+    if(allocatedPipeExists == false){
+      pcb[targetPID - 1].nbuffers++;
+      pcb[targetPID - 1].buffers = realloc(pcb[targetPID - 1].buffers, pcb[targetPID - 1].nbuffers * sizeof(buffer_t*));
+      int newPipeIndex = pcb[targetPID - 1].nbuffers - 1;
+
+      pcb[targetPID - 1].buffers[newPipeIndex] = calloc(1,sizeof(buffer_t));
+      pcb[targetPID - 1].buffers[newPipeIndex] -> sourcePID = currentProcess + 1;
+      pcb[targetPID - 1].buffers[newPipeIndex] -> targetPID = targetPID;
+      pcb[targetPID - 1].buffers[newPipeIndex] -> written1 = 0;
+      pcb[targetPID - 1].buffers[newPipeIndex] -> written2 = 0;
+      pcb[targetPID - 1].buffers[newPipeIndex] -> sem_counter = 1;
+
+      return pcb[targetPID - 1].buffers[newPipeIndex];
+    }
+  }
+}
+
+
+int svc_dealloc(buffer_t *buffer, pcb_t *pcb){
+        //Returns 0 if buffer has data still written in it
+        if(buffer -> written1 || buffer -> written2 ){ return 0; }
+
+        //Looks in target process for buffer
+        else {
+          int buffertoDeallocIndex = 0;
+          while(buffertoDeallocIndex != pcb[buffer->targetPID - 1].nbuffers){
+            if(pcb[buffer->targetPID - 1].buffers[buffertoDeallocIndex] == buffer) { break; }
+            buffertoDeallocIndex++;
+          }
+          //Returns 2 if buffer didn't exist (previously deallocated)
+          if(buffertoDeallocIndex == pcb[buffer->targetPID - 1].nbuffers){ return 2;}
+
+          //Returns 1 if buffer does exist and got deallocated
+          else{
+            //Free the buffer_t structure
+            free(pcb[buffer->targetPID - 1].buffers[buffertoDeallocIndex]);
+            //Swap buffer_t pointer index until it gets to the end of list
+            for(int i = buffertoDeallocIndex; i < pcb[buffer->targetPID - 1].nbuffers - 1; i++ ){
+              buffer_t *temp = pcb[buffer->targetPID - 1].buffers[i];
+              pcb[buffer->targetPID - 1].buffers[i] = pcb[buffer->targetPID - 1].buffers[i + 1];
+              pcb[buffer->targetPID - 1].buffers[i + 1] = temp;
+            }
+            pcb[buffer->targetPID - 1].nbuffers--;
+            //Realloc size of the buffers structure (reduce size)
+            pcb[buffer->targetPID - 1].buffers = realloc(pcb[buffer->targetPID - 1].buffers, pcb[buffer->targetPID - 1].nbuffers * sizeof(buffer_t*));
+            return 1;
+          }
+        }
+}
+
+
+
+
+//

@@ -53,26 +53,68 @@ typedef int pid_t;
 #define STDOUT_FILENO ( 1 )
 #define STDERR_FILENO ( 2 )
 
-
-// cooperatively yield control of processor, i.e., invoke the scheduler
+/*
+  Cooperatively yields progression of current process. Schedules the next process with respect to priority.
+*/
 extern void yield();
-// write n bytes from x to   the file descriptor fd; return bytes written
+/*
+  Write to standard output via UART instance.
+
+  @param fd - File descriptor, ignored, always written to UART instance.
+  @param x  - Pointer to string to write into file.
+  @param n  - Characters that exist in the string to be written.
+  @return   - Characters that have been written to the file.
+*/
 extern int write( int fd, const void* x, size_t n );
-// read  n bytes into x from the file descriptor fd; return bytes read
-extern int  read( int fd,       void* x, size_t n );
-// perform fork, returning 0 iff. child or > 0 iff. parent process
+
+extern int  read( int fd, void* x, size_t n );
+/*
+   Forks a child process.
+   @param basePriority - Base priority of the child
+   @return - | Parent = Id of the child)
+             | Child  = 0
+*/
 extern int  fork( int basePriority );
-// perform exit, i.e., terminate process with status x
-extern void exit(       int   x );
-// perform exec, i.e., start executing program at address x
+/*
+  Graceful termination of process
+  @param x - exitStatus, either EXIT_SUCCESS or EXIT_FAILURE, we ignore this and just terminate the process.
+*/
+extern void exit( int x );
+/*
+  For the child process, Replaces parents image with that of the childs image (Instructions, usually loaded from memory).
+  Trivially, We set the programs pc to the entry point of the child process image (main function)
+
+  @param addr - Address of the entry point (main function) to the child process image
+*/
 extern void exec( const void* x );
-// signal process identified by pid with signal x
+/*
+  Kills a process.
+  @param pid - Id of process to be killed.
+  @param s - Ignored.
+*/
 extern int  kill( pid_t pid, int x );
-// allocates Buffer in PCB of targetPID, returns buffer file descriptor (pointer)
+/*
+  Returns the address of a buffer if one exists. Allocated a buffer between processes if it doesn't exist.
+
+  @param targetPID - target process of the buffer
+  @return - | if target process doesn't exist = NULL
+            | if a buffer between source and target process already exists = address of existing buffer
+            | if a buffer doesn't exist source and target processes, creates ones = address of created buffer
+*/
 extern buffer_t *alloc(int targetPID);
-// deallocates a buffer
+/*
+Deallocated given buffer if it hasn't already already been deallocated. Doesn't deallocate the buffer if
+input still exists written to it.
+@param buffer - Address of the buffer to deallocate
+@return - | if input still exists written in the buffer = 0
+          | if buffer doesn't exit i.e. has been deallocated previously = 2
+          | if buffer gets deallocated = 1
+*/
 extern int dealloc(buffer_t *buffer);
-// returns PID of the caller process
+/*
+  Returns the id of the caller process.
+  @return - Id of current process.
+*/
 extern int getid();
 
 #endif
