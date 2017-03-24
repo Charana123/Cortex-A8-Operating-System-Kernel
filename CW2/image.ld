@@ -16,20 +16,10 @@ SECTIONS {
   /* align       address (per AAPCS) */
   .       = ALIGN( 8 );
   /* allocate stack for irq mode     */
-  .       = . + 0x00001000;
+  .       = 0x70200000 - 8; //Top of Page 701
   tos_irq = .;
   /* allocate stack for svc mode     */
-  .       = . + 0x00001000;
+  .       = 0x70300000 - 8; //Top of Page 702
   tos_svc = .;
-  /* allocate stack for Console           */
-  .       = . + 0x00001000;
-  tos_console  = .;
-  /* allocate stack for P4           */
-  .       = . + 0x00001000;
-  tos_P4  = .;
-  /* allocate stack for P5           */
-  .       = . + 0x00001000;
-  tos_P5  = .;
-
 
 }

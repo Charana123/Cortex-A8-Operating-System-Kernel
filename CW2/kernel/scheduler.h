@@ -3,6 +3,7 @@
 
 #include <string.h>
 #include "PCB.h"
+#include "MMU.h"
 
 /*
   Deschedules currently running process and Schedules next highest priority process.

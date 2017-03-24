@@ -3,6 +3,7 @@
 //Globals
 pcb_t pcb[ 100 ];
 int currentProcess, maxProcesses;
+bool pageframe[4096];
 
 // Address to a program's main() function entry point to the program main
 // Address to top of program's allocated stack space
@@ -13,6 +14,8 @@ extern uint32_t tos_console;
   Called on execution to intialize the program for execution.
 */
 void hilevel_handler_rst(ctx_t* ctx) {
+
+  initAllocationTable();
 
   //Global variable intializations
   memcpy(ctx, &(pcb[0].ctx), sizeof( ctx_t ) );
@@ -30,6 +33,14 @@ void hilevel_handler_rst(ctx_t* ctx) {
   pcb[ 0 ].active   = 1;
   pcb[ 0 ].buffers = NULL;
   pcb[ 0 ].nbuffers = 0;
+
+  initPageTable(pcb, 0); //Initialize Page Table for Console
+
+  // configure and enable MMU
+  mmu_set_ptr0( pcb[0].T );
+  mmu_set_dom( 0, 0x3 ); // set domain 0 to 11_{(2)} => manager (i.e., not checked)
+  mmu_set_dom( 1, 0x1 ); // set domain 1 to 01_{(2)} => client  (i.e.,     checked)
+  mmu_enable();
 
   //Configure the Timer for intermittent IRQ Hardware Interrupts
   TIMER0->Timer1Load  = 0x00100000; // select period = 2^20 ticks ~= 1 sec
@@ -51,6 +62,16 @@ void hilevel_handler_rst(ctx_t* ctx) {
   //Enable IRQ Interrupts
   int_enable_irq();
 
+  return;
+}
+
+void hilevel_handler_pab() {
+  printString("Pre-Fetch Abort");
+  return;
+}
+
+void hilevel_handler_dab() {
+  printString("Data Abort");
   return;
 }
 

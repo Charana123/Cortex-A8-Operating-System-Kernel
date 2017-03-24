@@ -18,11 +18,10 @@ void createPCB(ctx_t* ctx, pcb_t *pcb, int basePriority, int nextFreePCB, int ma
   pcb[nextFreePCB].effectivePriority = pcb[nextFreePCB].basePriority;
   pcb[nextFreePCB].buffers = NULL;
   pcb[nextFreePCB].nbuffers = 0;
-
-  //Copy Execution Context of Parent of Child
+  initPageTable(pcb, nextFreePCB);
+  //Copy Execution Context of Parent to Child
   memcpy( &pcb[ nextFreePCB ].ctx, ctx, sizeof( ctx_t ) );
-  pcb[ nextFreePCB ].ctx.sp   = ( uint32_t ) pcb[nextFreePCB-1].ctx.sp + 0x00001000; //Allocate Stack Space
-  if(nextFreePCB == maxProcesses) { maxProcesses++; }
+  pcb[ nextFreePCB ].ctx.sp   = (uint32_t) 0x70400000 - 8; //Top of Page 703
 }
 
 
