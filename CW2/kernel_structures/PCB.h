@@ -5,6 +5,7 @@
 #include "buffer.h"
 #include <stdbool.h>
 #include <stdint.h>
+#include <stddef.h>
 
 /* The kernel source code is made simpler via three type definitions:
  *
@@ -17,6 +18,7 @@
  */
 
 typedef int pid_t;
+typedef uint32_t pte_t;
 
 typedef struct {
   uint32_t cpsr, pc, gpr[ 13 ], sp, lr;
@@ -34,6 +36,7 @@ typedef struct {
   int effectivePriority;
   buffer_t **buffers;
   int nbuffers;
+  pte_t T[4096] __attribute__ ((aligned (1 << 14)));
 } pcb_t;
 
 #endif

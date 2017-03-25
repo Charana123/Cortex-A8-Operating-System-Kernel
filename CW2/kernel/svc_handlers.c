@@ -11,17 +11,16 @@
   @param index - Index in the PCB Table that the newly created Process Block exists.
 */
 void createPCB(ctx_t* ctx, pcb_t *pcb, int basePriority, int nextFreePCB, int maxProcesses){
-  memset( &pcb[ nextFreePCB ], 0, sizeof( pcb_t ) );
+  //memset( &pcb[ nextFreePCB ], 0, sizeof( pcb_t ) );
   pcb[nextFreePCB].pid = nextFreePCB + 1; // Gives the process an id
   pcb[nextFreePCB].active = 1; // This states the program is active
   pcb[nextFreePCB].basePriority = basePriority;
   pcb[nextFreePCB].effectivePriority = pcb[nextFreePCB].basePriority;
   pcb[nextFreePCB].buffers = NULL;
   pcb[nextFreePCB].nbuffers = 0;
-  initPageTable(pcb, nextFreePCB);
-  //Copy Execution Context of Parent to Child
-  memcpy( &pcb[ nextFreePCB ].ctx, ctx, sizeof( ctx_t ) );
-  pcb[ nextFreePCB ].ctx.sp   = (uint32_t) 0x70400000 - 8; //Top of Page 703
+  memcpy( &pcb[ nextFreePCB ].ctx, ctx, sizeof( ctx_t ) ); //Copy parent context into child
+  pcb[ nextFreePCB ].ctx.sp   = (uint32_t) (0x704000000 - 8); //Top of Page 703
+  initPageTable(pcb, nextFreePCB); //Initialize Page table for child process
 }
 
 
@@ -34,7 +33,7 @@ int svc_fork(int basePriority, ctx_t* ctx, pcb_t *pcb, int maxProcesses){
   //If one if found, it is populated with the child process
   if(found == true) { createPCB(ctx, pcb, basePriority, nextFreePCB, maxProcesses); return nextFreePCB; }
   //Else a new PCB is created at the end of the PCB list
-  else { createPCB(ctx, pcb, basePriority, nextFreePCB, maxProcesses); return maxProcesses; }
+  else { createPCB(ctx, pcb, basePriority, maxProcesses, maxProcesses); return maxProcesses; }
 }
 
 

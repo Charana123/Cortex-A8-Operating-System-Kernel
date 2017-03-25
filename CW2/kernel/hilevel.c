@@ -3,7 +3,6 @@
 //Globals
 pcb_t pcb[ 100 ];
 int currentProcess, maxProcesses;
-bool pageframe[4096];
 
 // Address to a program's main() function entry point to the program main
 // Address to top of program's allocated stack space
@@ -15,21 +14,20 @@ extern uint32_t tos_console;
 */
 void hilevel_handler_rst(ctx_t* ctx) {
 
-  initAllocationTable();
-
   //Global variable intializations
   memcpy(ctx, &(pcb[0].ctx), sizeof( ctx_t ) );
   maxProcesses = 1;
   currentProcess = 0;
+  initAllocationTable(); //Intialize Page Frame allocation table
 
   //Intialize Console Program
-  memset( &pcb[ 0 ], 0, sizeof( pcb_t ) );
+  //memset( &pcb[ 0 ], 0, sizeof( pcb_t ) );
   pcb[ 0 ].pid      = 1;
   pcb[ 0 ].basePriority = 1;
   pcb[ 0 ].effectivePriority = pcb[ 0 ].basePriority;
   pcb[ 0 ].ctx.cpsr = 0x50; // CPSR value = 0x50, Processor is switched into USR mode, with IRQ interrupts enabled
   pcb[ 0 ].ctx.pc   = ( uint32_t )( &main_console );
-  pcb[ 0 ].ctx.sp   = ( uint32_t )( &tos_console  );
+  pcb[ 0 ].ctx.sp   = ( uint32_t )( 0x70400000 - 8 );
   pcb[ 0 ].active   = 1;
   pcb[ 0 ].buffers = NULL;
   pcb[ 0 ].nbuffers = 0;
