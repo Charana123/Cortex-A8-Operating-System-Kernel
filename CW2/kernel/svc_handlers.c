@@ -19,7 +19,7 @@ void createPCB(ctx_t* ctx, pcb_t *pcb, int basePriority, int nextFreePCB, int ma
   pcb[nextFreePCB].buffers = NULL;
   pcb[nextFreePCB].nbuffers = 0;
   memcpy( &pcb[ nextFreePCB ].ctx, ctx, sizeof( ctx_t ) ); //Copy parent context into child
-  pcb[ nextFreePCB ].ctx.sp   = (uint32_t) (0x704000000 - 8); //Top of Page 703
+  pcb[ nextFreePCB ].ctx.sp   = (uint32_t) (0x70400000 - 8); //Top of Page 703
   initPageTable(pcb, nextFreePCB); //Initialize Page table for child process
 }
 

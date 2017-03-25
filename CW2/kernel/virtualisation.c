@@ -24,11 +24,11 @@ void initAllocationTable(){
 
 void initPageTable(pcb_t *pcb, int processEntry){
   //Intialize user process page table
-  printString("Process Id - "); printInt(processEntry); printString("\n");
-  for(int i = 0; i <= 0x700; i++){ //Page 0 - 699
+
+  for(int i = 0; i <= 0x699; i++){ //Page 0 - 699
     pcb[processEntry].T[i] = ((pte_t) (i) << 20) | 0x00C22; //Interrupt Table - Client Domain | All Permissions - Full Access
   }
-  //pcb[processEntry].T[0x700] = ((pte_t) (0x700) << 20) | 0x00C22; //Page 700 (Kernel & Program Image), Client Domain | All Permissions - Full Access
+  pcb[processEntry].T[0x700] = ((pte_t) (0x700) << 20) | 0x00C22; //Page 700 (Kernel & Program Image), Client Domain | All Permissions - Full Access
   pcb[processEntry].T[0x701] = ((pte_t) (0x701) << 20) | 0x00422; //Page 701 (SVC Stack), Client Domain | Client Permissions - No access
   pcb[processEntry].T[0x702] = ((pte_t) (0x702) << 20) | 0x00422; //Page 702 (IRQ Stack), Client Domain | Client Permissions - No access
 
@@ -36,6 +36,9 @@ void initPageTable(pcb_t *pcb, int processEntry){
   int stackPageFrame = nextFreePageFrame(pageframe);
   pcb[processEntry].T[0x703] = ((pte_t) (stackPageFrame) << 20) | 0x00C22; //Page 703 (Console Stack), Client Domain | Client Permissions - Full access
   pageframe[stackPageFrame] = true;
+
+  printString("Process Id - "); printInt(processEntry); printString("\n");
+  printString("Stack Page - "); printInt(stackPageFrame); printString("\n");
 
   for(int i = 0x704; i < 0xFFF; i++){
     pcb[processEntry].T[i] = ( ( pte_t) (i) << 20 ) | 0x00822;
