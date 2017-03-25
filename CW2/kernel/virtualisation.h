@@ -18,5 +18,15 @@ void initAllocationTable();
   @param processEntry - Index in the PCB of process to intialize pagetable
 */
 void initPageTable(pcb_t *pcb, int processEntry);
+/*
+  Frees a given page frame to be allocated later. Called to kill or exit a process.
+  @param pageframeIndex - The page
+*/
+void freePageFrame(int pageframeIndex);
+/*
+  Removes a process from schedular by removing its existing PCB
+  @param processIndex - Index of process to be removed (ProcessID - 1)
+*/
+void svc_kill(pcb_t *pcb, int processIndex);
 
 #endif

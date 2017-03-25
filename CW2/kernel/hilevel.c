@@ -27,7 +27,7 @@ void hilevel_handler_rst(ctx_t* ctx) {
   pcb[ 0 ].effectivePriority = pcb[ 0 ].basePriority;
   pcb[ 0 ].ctx.cpsr = 0x50; // CPSR value = 0x50, Processor is switched into USR mode, with IRQ interrupts enabled
   pcb[ 0 ].ctx.pc   = ( uint32_t )( &main_console );
-  pcb[ 0 ].ctx.sp   = ( uint32_t )( 0x70400000 - 8 );
+  pcb[ 0 ].ctx.sp   = ( uint32_t )( 0x70500000 - 8 ); //Top of Page 704
   pcb[ 0 ].active   = 1;
   pcb[ 0 ].buffers = NULL;
   pcb[ 0 ].nbuffers = 0;
@@ -63,13 +63,17 @@ void hilevel_handler_rst(ctx_t* ctx) {
   return;
 }
 
-void hilevel_handler_pab() {
-  printString("Pre-Fetch Abort");
+void hilevel_handler_pab(ctx_t* ctx) {
+  printString("Prefetch Abort\n");
+  svc_kill(pcb, currentProcess);
+  currentProcess = priorityScheduler(ctx, pcb, currentProcess, maxProcesses);
   return;
 }
 
-void hilevel_handler_dab() {
-  printString("Data Abort");
+void hilevel_handler_dab(ctx_t* ctx) {
+  printString("Data Abort\n");
+  svc_kill(pcb, currentProcess);
+  currentProcess = priorityScheduler(ctx, pcb, currentProcess, maxProcesses);
   return;
 }
 
@@ -123,7 +127,8 @@ void hilevel_handler_svc(ctx_t* ctx, uint32_t id) {
 
   case 0x04:{ //0x04 => exit(int x)
     int exitStatus = (int) (ctx ->gpr[0]);
-    pcb[currentProcess].active = 0;
+    svc_kill(pcb, currentProcess);
+    currentProcess = priorityScheduler(ctx, pcb, currentProcess, maxProcesses);
   }
 
   case 0x05:{ // 0x05 => exec(addr)
@@ -137,7 +142,8 @@ void hilevel_handler_svc(ctx_t* ctx, uint32_t id) {
   case 0x06:{ // 0x06 => kill(pid,s)
     int pid = (int) (ctx ->gpr[0]);
     int x = (int) (ctx ->gpr[1]);
-    pcb[pid - 1].active = 0; //Sets the active flag of a Process, the Process can no longer be detected by Scheduler
+    svc_kill(pcb, pid-1);
+    if(pid - 1 == currentProcess) { currentProcess = priorityScheduler(ctx, pcb, currentProcess, maxProcesses); }
     break;
   }
 

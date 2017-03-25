@@ -21,4 +21,7 @@ SECTIONS {
   /* allocate stack for svc mode     */
   .       =     0x70300000 - 8;
   tos_svc = .;
+  /* allocate stack for abt mode     */
+  .       =     0x70400000 - 8;
+  tos_abt = .;
 }

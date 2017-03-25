@@ -12,19 +12,19 @@
 */
 void createPCB(ctx_t* ctx, pcb_t *pcb, int basePriority, int nextFreePCB, int maxProcesses){
   //memset( &pcb[ nextFreePCB ], 0, sizeof( pcb_t ) );
+  memcpy( &pcb[ nextFreePCB ].ctx, ctx, sizeof( ctx_t ) ); //Copy parent context into child
+  initPageTable(pcb, nextFreePCB); //Initialize Page table for child process
+  pcb[ nextFreePCB ].ctx.sp   = (uint32_t) (0x70500000 - 8); //Top of Page 704
   pcb[nextFreePCB].pid = nextFreePCB + 1; // Gives the process an id
   pcb[nextFreePCB].active = 1; // This states the program is active
   pcb[nextFreePCB].basePriority = basePriority;
   pcb[nextFreePCB].effectivePriority = pcb[nextFreePCB].basePriority;
   pcb[nextFreePCB].buffers = NULL;
   pcb[nextFreePCB].nbuffers = 0;
-  memcpy( &pcb[ nextFreePCB ].ctx, ctx, sizeof( ctx_t ) ); //Copy parent context into child
-  pcb[ nextFreePCB ].ctx.sp   = (uint32_t) (0x70400000 - 8); //Top of Page 703
-  initPageTable(pcb, nextFreePCB); //Initialize Page table for child process
 }
 
 
-int svc_fork(int basePriority, ctx_t* ctx, pcb_t *pcb, int maxProcesses){
+int svc_fork(int basePriority, ctx_t *ctx, pcb_t *pcb, int maxProcesses){
   //Tries to find an empty PCB(as a result of a killed Process)
   int nextFreePCB; bool found = true;
   for(nextFreePCB = 0; pcb[nextFreePCB].active == 1; nextFreePCB++){
@@ -34,6 +34,11 @@ int svc_fork(int basePriority, ctx_t* ctx, pcb_t *pcb, int maxProcesses){
   if(found == true) { createPCB(ctx, pcb, basePriority, nextFreePCB, maxProcesses); return nextFreePCB; }
   //Else a new PCB is created at the end of the PCB list
   else { createPCB(ctx, pcb, basePriority, maxProcesses, maxProcesses); return maxProcesses; }
+}
+
+void svc_kill(pcb_t *pcb, int processIndex){
+  pcb[processIndex].active = 0;
+  freePageFrame(pcb[processIndex].T[0x704] >> 20); //Unallocate previously allocated stack pageframe
 }
 
 

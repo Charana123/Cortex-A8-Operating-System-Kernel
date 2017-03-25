@@ -38,9 +38,9 @@ int priorityScheduler(ctx_t* ctx, pcb_t *pcb, int currentProcess, int maxProcess
    /* Copies content of next highest priority process as the current execution context */
    memcpy( ctx, &pcb[highestPriorityProcess].ctx, sizeof( ctx_t ) );
    //Set the user process's page table to be used as the current page table.
-   //if(highestPriorityProcess == 0) { printString("Console"); }
-   printString("Process Index - "); printInt(highestPriorityProcess); printString("\n");
-   printString("Stack page"); printInt(pcb[highestPriorityProcess].T[0x703]); printString("\n");
+   //printString("Process Index - "); printInt(highestPriorityProcess); printString("\n");
+   //printString("Stack page"); printInt(pcb[highestPriorityProcess].T[0x703]); printString("\n");
+   if(highestPriorityProcess == 0) { printString("Console"); }
    mmu_set_ptr0(pcb[highestPriorityProcess].T);
    mmu_flush();
    return highestPriorityProcess;
