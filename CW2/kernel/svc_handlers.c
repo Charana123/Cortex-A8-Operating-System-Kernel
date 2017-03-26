@@ -13,8 +13,8 @@
 void createPCB(ctx_t* ctx, pcb_t *pcb, int basePriority, int nextFreePCB, int maxProcesses){
   //memset( &pcb[ nextFreePCB ], 0, sizeof( pcb_t ) );
   memcpy( &pcb[ nextFreePCB ].ctx, ctx, sizeof( ctx_t ) ); //Copy parent context into child
-  initPageTable(pcb, nextFreePCB); //Initialize Page table for child process
   pcb[ nextFreePCB ].ctx.sp   = (uint32_t) (0x70500000 - 8); //Top of Page 704
+  initPageTable(pcb, nextFreePCB); //Initialize Page table for child process
   pcb[nextFreePCB].pid = nextFreePCB + 1; // Gives the process an id
   pcb[nextFreePCB].active = 1; // This states the program is active
   pcb[nextFreePCB].basePriority = basePriority;

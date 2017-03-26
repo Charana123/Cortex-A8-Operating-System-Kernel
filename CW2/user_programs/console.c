@@ -76,10 +76,11 @@ void main_console() {
     if ( 0 == strcmp( p, "fork" ) ) {
       int basePriority = atoi(strtok( NULL, " " ));
       pid_t pid = fork( basePriority );
+      char *y = strtok( NULL, " " );
 
       if( 0 == pid ) {
         write( STDOUT_FILENO, "Child", 5 );
-        void* addr = load( strtok( NULL, " " ) );
+        void* addr = load(y);
         exec( addr );
       }
       write( STDOUT_FILENO, "Parent", 6 );

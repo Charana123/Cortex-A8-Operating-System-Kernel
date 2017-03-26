@@ -7,6 +7,7 @@ int currentProcess, maxProcesses;
 // Address to a program's main() function entry point to the program main
 // Address to top of program's allocated stack space
 extern void     main_console();
+extern void     main_IPC1();
 extern uint32_t tos_console;
 
 /*

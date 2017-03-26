@@ -16,6 +16,7 @@ void main_IPC1() {
   }
 
   //Allocates buffer with master
+  printString("Philosopher"); printInt(id); printString("\n");
   buffer_t *buffer = alloc(idOfMaster);
   printString("Philosopher Process");
   printInt(id);
