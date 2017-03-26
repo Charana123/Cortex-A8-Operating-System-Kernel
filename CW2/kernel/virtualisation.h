@@ -23,10 +23,6 @@ void initPageTable(pcb_t *pcb, int processEntry);
   @param pageframeIndex - The page
 */
 void freePageFrame(int pageframeIndex);
-/*
-  Removes a process from schedular by removing its existing PCB
-  @param processIndex - Index of process to be removed (ProcessID - 1)
-*/
-void svc_kill(pcb_t *pcb, int processIndex);
+
 
 #endif

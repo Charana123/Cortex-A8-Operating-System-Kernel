@@ -37,4 +37,11 @@ input still exists written to it.
           | if buffer gets deallocated = 1
 */
 int svc_dealloc(buffer_t *buffer, pcb_t *pcb, int procID);
+
+/*
+  Removes a process from schedular by removing its existing PCB
+  @param processIndex - Index of process to be removed (ProcessID - 1)
+*/
+void svc_kill(pcb_t *pcb, int processIndex);
+
 #endif
