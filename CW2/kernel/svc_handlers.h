@@ -36,5 +36,5 @@ input still exists written to it.
           | if buffer doesn't exit i.e. has been deallocated previously = 2
           | if buffer gets deallocated = 1
 */
-int svc_dealloc(buffer_t *buffer, pcb_t *pcb);
+int svc_dealloc(buffer_t *buffer, pcb_t *pcb, int procID);
 #endif

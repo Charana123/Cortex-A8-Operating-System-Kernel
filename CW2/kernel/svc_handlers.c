@@ -76,37 +76,36 @@ buffer_t* svc_alloc(int targetPID, pcb_t *pcb, int currentProcess){
 }
 
 
-int svc_dealloc(buffer_t *buffer, pcb_t *pcb){
-        //Returns 0 if buffer has data still written in it
-        if(buffer -> written1 || buffer -> written2 ){ return 0; }
+int svc_dealloc(buffer_t *buffer, pcb_t *pcb, int procID){
+    //Either sets the source or target deallocation flag
+    if(procID == buffer -> sourcePID)  { buffer -> sourceDelloc = true; }
+    else { buffer -> targetDealloc = true; }
 
+    //If both are set deallocation begins
+    if(buffer -> sourceDelloc && buffer -> targetDealloc) {
         //Looks in target process for buffer
-        else {
-          int buffertoDeallocIndex = 0;
-          while(buffertoDeallocIndex != pcb[buffer->targetPID - 1].nbuffers){
-            if(pcb[buffer->targetPID - 1].buffers[buffertoDeallocIndex] == buffer) { break; }
-            buffertoDeallocIndex++;
-          }
-          //Returns 2 if buffer didn't exist (previously deallocated)
-          if(buffertoDeallocIndex == pcb[buffer->targetPID - 1].nbuffers){ return 2;}
-
-          //Returns 1 if buffer does exist and got deallocated
-          else{
-            //Free the buffer_t structure
-            free(pcb[buffer->targetPID - 1].buffers[buffertoDeallocIndex]);
-            //Swap buffer_t pointer index until it gets to the end of list
-            for(int i = buffertoDeallocIndex; i < pcb[buffer->targetPID - 1].nbuffers - 1; i++ ){
-              buffer_t *temp = pcb[buffer->targetPID - 1].buffers[i];
-              pcb[buffer->targetPID - 1].buffers[i] = pcb[buffer->targetPID - 1].buffers[i + 1];
-              pcb[buffer->targetPID - 1].buffers[i + 1] = temp;
-            }
-            pcb[buffer->targetPID - 1].nbuffers--;
-            //Realloc size of the buffers structure (reduce size)
-            pcb[buffer->targetPID - 1].buffers = realloc(pcb[buffer->targetPID - 1].buffers, pcb[buffer->targetPID - 1].nbuffers * sizeof(buffer_t*));
-            return 1;
-          }
+        int buffertoDeallocIndex = 0;
+        while(buffertoDeallocIndex != pcb[buffer->targetPID - 1].nbuffers){
+          if(pcb[buffer->targetPID - 1].buffers[buffertoDeallocIndex] == buffer) { break; }
+          buffertoDeallocIndex++;
         }
+        //Free the buffer_t structure
+        free(pcb[buffer->targetPID - 1].buffers[buffertoDeallocIndex]);
+        //Swap buffer_t pointer index until it gets to the end of list
+        for(int i = buffertoDeallocIndex; i < pcb[buffer->targetPID - 1].nbuffers - 1; i++ ){
+          buffer_t *temp = pcb[buffer->targetPID - 1].buffers[i];
+          pcb[buffer->targetPID - 1].buffers[i] = pcb[buffer->targetPID - 1].buffers[i + 1];
+          pcb[buffer->targetPID - 1].buffers[i + 1] = temp;
+        }
+        pcb[buffer->targetPID - 1].nbuffers--;
+        //Realloc size of the buffers structure (reduce size)
+        pcb[buffer->targetPID - 1].buffers = realloc(pcb[buffer->targetPID - 1].buffers, pcb[buffer->targetPID - 1].nbuffers * sizeof(buffer_t*));
+        return 1; //Buffer deallocated
+    }
+
+    return 0; //Buffer did not deallocate (One of the flags were not set)
 }
+
 
 
 

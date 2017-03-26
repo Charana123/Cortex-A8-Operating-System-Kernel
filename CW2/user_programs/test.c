@@ -29,27 +29,34 @@ void main_test() {
   }
 
   if(id % 2 == 0){
-    while(1){
       int r = dealloc(buffer);
-      if(r != 0) {
-        printString("Deallocation-");
-        printInt(r);
-        printString("\n");
-        break;
-      }
-    }
+      printString("Deallocation-");
+      printInt(r);
+      printString("\n");
   }
   else{
-    while(1){
       int r = dealloc(buffer);
-      if(r != 0) {
-        printString("Deallocation-");
-        printInt(r);
-        printString("\n");
-        break;
-      }
-    }
+      printString("Deallocation-");
+      printInt(r);
+      printString("\n");
+  }
+
+  while(1){
+
   }
 
   exit( EXIT_SUCCESS );
 }
+
+
+
+
+
+
+
+
+
+
+
+
+//

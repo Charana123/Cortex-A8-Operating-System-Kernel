@@ -158,11 +158,11 @@ void hilevel_handler_svc(ctx_t* ctx, uint32_t id) {
   }
 
   case 0x08:{ // 0x08 => dealloc(buffer_t *buffer)
-
-      buffer_t *buffer = (buffer_t*) (ctx ->gpr[0]);
-      int deallocStatus = svc_dealloc(buffer, pcb);
-      ctx->gpr[0] = (uint32_t) deallocStatus;
-      break;
+    buffer_t *buffer = (buffer_t*) (ctx ->gpr[0]);
+    pid_t procID = currentProcess + 1;
+    int deallocStatus = svc_dealloc(buffer, pcb, procID);
+    ctx->gpr[0] = (uint32_t) deallocStatus;
+    break;
   }
 
   case 0x09:{ // 0x09 => getid()

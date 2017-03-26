@@ -14,6 +14,8 @@ typedef struct {
   bool written1; //Bool to determine if source process has written to shared memory
   bool written2; //Bool to determine if target process has written to shared memory
   int sem_counter; //Mutex counter to limit access to shared memory buffer
+  bool sourceDelloc; //Whether the source wishes to keep the pipe open or close it
+  bool targetDealloc; //Whether the target wishes to keep the pipe open or close it
 } buffer_t;
 
 
