@@ -24,14 +24,18 @@ void main_IPC1() {
 
   while(1){
     //Asks for forks
+    printString("Philosopher Asked forks from Master"); printInt(id); printString("\n");
     writeBuffer(buffer,id,1);
+    printString("Philosopher Finished Asking forks from Master"); printInt(id); printString("\n");
     int data = readBuffer(buffer, id);
     if(data == 1){
       printString("Philosopher Process");
       printInt(id);
       printString("-Started Eating\n");
       //Gives back forks
+      printString("Philosopher Giving back forks to Master"); printInt(id); printString("\n");
       writeBuffer(buffer,id,0);
+      printString("Philosopher Finished Giving back forks to Master"); printInt(id); printString("\n");
     }
     if(data == 0){
       printString("Philosopher Process");
@@ -40,7 +44,6 @@ void main_IPC1() {
     }
 
   }
-
 
   printString("philosopher - end");
   exit( EXIT_SUCCESS );

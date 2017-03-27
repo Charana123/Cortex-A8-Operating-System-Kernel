@@ -1,5 +1,5 @@
 #include "master.h"
-#define N 3
+#define N 2
 
 buffer_t *buffers[N];
 int forks = 2;
@@ -26,16 +26,22 @@ void main_master() {
 
   while(1){
     for(int i=0; i<N; i++){
+      printString("Trying to Read from Philospher"); printInt(i); printString("\n");
         int data = readBuffer(buffers[i],id);
+        printString("Finished Reading from Philospher"); printInt(i); printString("\n");
         //data = 1, The philosopher is asking for a fork
         if(data == 1){
           //If there are enough forks, we signal the philosopher it can have a fork (writes a 1)
           if ( (forks - 2) >= 0){
             forks = forks - 2;
+            printString("Writing 1 to Philospher"); printInt(i); printString("\n");
             writeBuffer(buffers[i],id,1);
+            printString("Finishing Writing 1 to Philospher"); printInt(i); printString("\n");
           }
           else {
+            printString("Writing 0 to Philospher"); printInt(i); printString("\n");
             writeBuffer(buffers[i],id,0);
+            printString("Writing 0 to Philospher"); printInt(i); printString("\n");
           }
         }
         //data = 0, The philospher has finished eating, wants to return his forks
@@ -53,41 +59,4 @@ void main_master() {
 
 
 
-
-
-// int a = 5; int b;
-// asm ( "mov r0, %1 \n"
-//       "mov %0, r0 \n"
-//     : "=r" (b)
-//     : "r" (a)
-//     : "r0"  );
-
-// int a = 5; int b;
-// asm ( "mov r0, %0 \n" // assign r0 = basePriority
-//     :
-//     : "r" (a)
-//     : "r0"  );
-//
-// asm ( "mov %0, r0 \n"
-//     : "=r" (b)
-//     :
-//     : );
-
-// printString("ValueofB -");
-// printInt(b);
-// printString("-\n");
-
-// int a = 1; int *pointer = &a;
-// asm ( "mov r0, %0 \n" // assign r0 = pointer
-//     :
-//     : "r" (pointer)
-//     : "r0"  );
-//
-// //sem_post();
-// sem_wait();
-//
-// printString("ValueofA -");
-// printInt(a);
-// printString("-\n");
-//
 //

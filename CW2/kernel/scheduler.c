@@ -41,6 +41,7 @@ int priorityScheduler(ctx_t* ctx, pcb_t *pcb, int currentProcess, int maxProcess
    //if(highestPriorityProcess == 0) { printString("Console"); }
    mmu_set_ptr0(pcb[highestPriorityProcess].T);
    mmu_flush();
+   printString("Process ID-"); printInt(highestPriorityProcess + 1); printString("\n");
    return highestPriorityProcess;
 }
 

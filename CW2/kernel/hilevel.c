@@ -27,7 +27,7 @@ void hilevel_handler_rst(ctx_t* ctx) {
   pcb[ 0 ].basePriority = 1;
   pcb[ 0 ].effectivePriority = pcb[ 0 ].basePriority;
   pcb[ 0 ].ctx.cpsr = 0x50; // CPSR value = 0x50, Processor is switched into USR mode, with IRQ interrupts enabled
-  pcb[ 0 ].ctx.pc   = ( uint32_t )( &main_testipc );
+  pcb[ 0 ].ctx.pc   = ( uint32_t )( &main_console );
   pcb[ 0 ].ctx.sp   = ( uint32_t )( 0x70500000 - 8 ); //Top of Page 704
   pcb[ 0 ].active   = 1;
   pcb[ 0 ].buffers = NULL;

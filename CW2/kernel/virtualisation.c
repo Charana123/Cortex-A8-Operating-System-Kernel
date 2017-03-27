@@ -41,10 +41,6 @@ void initPageTable(pcb_t *pcb, int processEntry){
   uint32_t stackPageFrame = nextFreePageFrame(pageframe);
   pcb[processEntry].T[0x709] = ((pte_t) (stackPageFrame) << 20) | 0x00C22; //Page 703 (Console Stack), Client Domain | Client Permissions - Full access
   pageframe[stackPageFrame] = true;
-
-  // for(int i = 0; i < 0xFFF; i++){
-  //   printInt(i); printString("-"); printInt(pcb[processEntry].T[i]); printString("\n");
-  // }
   return;
 }
 
