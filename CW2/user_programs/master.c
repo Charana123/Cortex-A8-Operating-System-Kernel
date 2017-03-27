@@ -1,5 +1,5 @@
 #include "master.h"
-#define N 2
+#define N 3
 
 buffer_t *buffers[N];
 int forks = 2;
@@ -26,22 +26,22 @@ void main_master() {
 
   while(1){
     for(int i=0; i<N; i++){
-      printString("Trying to Read from Philospher"); printInt(i); printString("\n");
+      //printString("Trying to Read from Philospher"); printInt(i); printString("\n");
         int data = readBuffer(buffers[i],id);
-        printString("Finished Reading from Philospher"); printInt(i); printString("\n");
+        //printString("Finished Reading from Philospher"); printInt(i); printString("\n");
         //data = 1, The philosopher is asking for a fork
         if(data == 1){
           //If there are enough forks, we signal the philosopher it can have a fork (writes a 1)
           if ( (forks - 2) >= 0){
             forks = forks - 2;
-            printString("Writing 1 to Philospher"); printInt(i); printString("\n");
+            //printString("Writing 1 to Philospher"); printInt(i); printString("\n");
             writeBuffer(buffers[i],id,1);
-            printString("Finishing Writing 1 to Philospher"); printInt(i); printString("\n");
+            //printString("Finishing Writing 1 to Philospher"); printInt(i); printString("\n");
           }
           else {
-            printString("Writing 0 to Philospher"); printInt(i); printString("\n");
+            //printString("Writing 0 to Philospher"); printInt(i); printString("\n");
             writeBuffer(buffers[i],id,0);
-            printString("Writing 0 to Philospher"); printInt(i); printString("\n");
+            //printString("Finished Writing 0 to Philospher"); printInt(i); printString("\n");
           }
         }
         //data = 0, The philospher has finished eating, wants to return his forks

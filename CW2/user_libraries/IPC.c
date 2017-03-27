@@ -84,7 +84,8 @@ int readBuffer(buffer_t *buffer, int id){
         data = lowreadBuffer(buffer,id);
         break;
     }
-    //sleep(1);
+    //printString("Reading"); printInt(id); printString("\n");
+    sleep(1);
   }
   return data;
 }
@@ -95,6 +96,7 @@ void writeBuffer(buffer_t *buffer, int id, int data){
       lowwriteBuffer(buffer,id,data);
       break;
     }
-    //sleep(1);
+    //printString("Writing"); printInt(id); printString("\n");
+    sleep(1);
   }
 }

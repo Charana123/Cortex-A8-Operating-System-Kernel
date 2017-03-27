@@ -16,7 +16,6 @@ void main_IPC1() {
   }
 
   //Allocates buffer with master
-  printString("Philosopher"); printInt(id); printString("\n");
   buffer_t *buffer = alloc(idOfMaster);
   printString("Philosopher Process");
   printInt(id);
@@ -24,27 +23,29 @@ void main_IPC1() {
 
   while(1){
     //Asks for forks
-    printString("Philosopher Asked forks from Master"); printInt(id); printString("\n");
+    //printString("Philospher tries to Write"); printInt(id); printString("\n");
     writeBuffer(buffer,id,1);
-    printString("Philosopher Finished Asking forks from Master"); printInt(id); printString("\n");
+    //printString("Philospher finished Writing"); printInt(id); printString("\n");
+    //printString("Philospher tries to Read"); printInt(id); printString("\n");
     int data = readBuffer(buffer, id);
+    //printString("Philospher finishes Reading Writing"); printInt(id); printString("\n");
     if(data == 1){
       printString("Philosopher Process");
       printInt(id);
       printString("-Started Eating\n");
       //Gives back forks
-      printString("Philosopher Giving back forks to Master"); printInt(id); printString("\n");
+      //printString("Philospher giving back his pipes"); printInt(id); printString("\n");
       writeBuffer(buffer,id,0);
-      printString("Philosopher Finished Giving back forks to Master"); printInt(id); printString("\n");
+      //printString("Philospher finishes giving back his pipes"); printInt(id); printString("\n");
     }
     if(data == 0){
       printString("Philosopher Process");
       printInt(id);
       printString("-Denied Eating\n");
     }
-
   }
 
-  printString("philosopher - end");
+
+  printString("philosopher - end\n");
   exit( EXIT_SUCCESS );
 }

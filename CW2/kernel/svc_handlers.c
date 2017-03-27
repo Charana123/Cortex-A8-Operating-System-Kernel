@@ -13,7 +13,7 @@
 void createPCB(ctx_t* ctx, pcb_t *pcb, int basePriority, int nextFreePCB, int maxProcesses){
   //memset( &pcb[ nextFreePCB ], 0, sizeof( pcb_t ) );
   memcpy( &pcb[ nextFreePCB ].ctx, ctx, sizeof( ctx_t ) ); //Copy parent context into child
-  pcb[ nextFreePCB ].ctx.sp   = (uint32_t) (0x70500000 - 8); //Top of Page 704
+  pcb[ nextFreePCB ].ctx.sp   = (uint32_t) (0x70A00000 - 8); //Top of Page 709
   initPageTable(pcb, nextFreePCB); //Initialize Page table for child process
   pcb[nextFreePCB].pid = nextFreePCB + 1; // Gives the process an id
   pcb[nextFreePCB].active = 1; // This states the program is active
@@ -38,7 +38,7 @@ int svc_fork(int basePriority, ctx_t *ctx, pcb_t *pcb, int maxProcesses){
 
 void svc_kill(pcb_t *pcb, int processIndex){
   pcb[processIndex].active = 0;
-  freePageFrame(pcb[processIndex].T[0x704] >> 20); //Unallocate previously allocated stack pageframe
+  freePageFrame(pcb[processIndex].T[0x709] >> 20); //Unallocate previously allocated stack pageframe
 }
 
 
