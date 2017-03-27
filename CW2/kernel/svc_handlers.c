@@ -69,6 +69,8 @@ buffer_t* svc_alloc(int targetPID, pcb_t *pcb, int currentProcess){
       pcb[targetPID - 1].buffers[newPipeIndex] -> written1 = 0;
       pcb[targetPID - 1].buffers[newPipeIndex] -> written2 = 0;
       pcb[targetPID - 1].buffers[newPipeIndex] -> sem_counter = 1;
+      pcb[targetPID - 1].buffers[newPipeIndex] -> sourceDelloc = false;
+      pcb[targetPID - 1].buffers[newPipeIndex] -> sourceDelloc = false;
 
       return pcb[targetPID - 1].buffers[newPipeIndex];
     }

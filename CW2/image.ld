@@ -16,12 +16,12 @@ SECTIONS {
   /* align       address (per AAPCS) */
   .       = ALIGN( 8 );
   /* allocate stack for irq mode     */
-  .       =     0x70200000 - 8;
+  .       =     0x70700000 - 8;
   tos_irq = .;
   /* allocate stack for svc mode     */
-  .       =     0x70300000 - 8;
+  .       =     0x70800000 - 8;
   tos_svc = .;
   /* allocate stack for abt mode     */
-  .       =     0x70400000 - 8;
+  .       =     0x70900000 - 8;
   tos_abt = .;
 }
