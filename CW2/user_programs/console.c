@@ -34,6 +34,7 @@ extern void main_P5();
 extern void main_IPC1();
 extern void main_master();
 extern void main_test();
+extern void main_testipc();
 
 void* load( char* x ) {
   if ( 0 == strcmp( x, "P3" ) ) {
@@ -53,6 +54,9 @@ void* load( char* x ) {
   }
   else if( 0 == strcmp( x, "test" ) ) {
     return &main_test;
+  }
+  else if( 0 == strcmp( x, "testipc" ) ) {
+    return &main_testipc;
   }
   return NULL;
 }
@@ -75,12 +79,12 @@ void main_console() {
 
     if ( 0 == strcmp( p, "fork" ) ) {
       int basePriority = atoi(strtok( NULL, " " ));
-      pid_t pid = fork( basePriority );
       char *y = strtok( NULL, " " );
+      void* addr = load(y);
+      pid_t pid = fork( basePriority );
 
       if( 0 == pid ) {
         write( STDOUT_FILENO, "Child", 5 );
-        void* addr = load(y);
         exec( addr );
       }
       write( STDOUT_FILENO, "Parent", 6 );

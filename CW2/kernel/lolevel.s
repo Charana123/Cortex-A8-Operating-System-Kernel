@@ -69,7 +69,7 @@ lolevel_handler_irq: sub   lr, lr, #4
 
 
 
-lolevel_handler_pab: sub   lr, lr, #8              @ correct return address
+lolevel_handler_pab: sub   lr, lr, #4              @ correct return address
                      sub   sp, sp, #60             @ update ABT mode stack
                      stmia sp, { r0-r12, sp, lr }^ @ store  USR registers
                      mrs   r0, spsr                @ get    USR        CPSR

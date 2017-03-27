@@ -63,7 +63,7 @@ buffer_t* svc_alloc(int targetPID, pcb_t *pcb, int currentProcess){
       pcb[targetPID - 1].buffers = realloc(pcb[targetPID - 1].buffers, pcb[targetPID - 1].nbuffers * sizeof(buffer_t*));
       int newPipeIndex = pcb[targetPID - 1].nbuffers - 1;
 
-      pcb[targetPID - 1].buffers[newPipeIndex] = calloc(1,sizeof(buffer_t));
+      pcb[targetPID - 1].buffers[newPipeIndex] = calloc(1, sizeof(buffer_t));
       pcb[targetPID - 1].buffers[newPipeIndex] -> sourcePID = currentProcess + 1;
       pcb[targetPID - 1].buffers[newPipeIndex] -> targetPID = targetPID;
       pcb[targetPID - 1].buffers[newPipeIndex] -> written1 = 0;

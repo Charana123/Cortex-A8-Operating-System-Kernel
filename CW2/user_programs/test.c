@@ -1,48 +1,27 @@
 #include "test.h"
 
 
+void print(char *string){
+  printString(string);
+}
+
 void main_test() {
-  //Eat process gets its ID
-  int id = getid();
+  pid_t pid = getid();
+  printString("Process-"); printInt(pid); printString("\n");
 
-  //Forks off a 16 child process, last id = 18
-  if(id < 3){
-      pid_t pid = fork( 5 );
-      if( 0 == pid ) {
-        printString("Child\n");
-        exec(&main_test);
-      }
+  int r0 = fork( 5 );
+  if( 0 == r0 ) {
+    printString("Forked\n");
+    exec(&main_test);
   }
+  printString("Trying to Allocate\n");
+  buffer_t *buffer = alloc(1);
+  printString("AllocatedBuffer-"); printInt(pid); printString("\n");
 
-  //Allocates buffer with master
-  buffer_t *buffer = NULL;
-  if(id % 2 == 0) { buffer = alloc(id + 1); }
-  else { buffer = alloc(id - 1); }
 
-  if(id % 2 == 0) { writeBuffer(buffer,id,999); }
-
-  else {
-    int data = readBuffer(buffer,id);
-    printString("Data-");
-    printInt(data);
-    printString("\n");
-  }
-
-  if(id % 2 == 0){
-      int r = dealloc(buffer);
-      printString("Deallocation-");
-      printInt(r);
-      printString("\n");
-  }
-  else{
-      int r = dealloc(buffer);
-      printString("Deallocation-");
-      printInt(r);
-      printString("\n");
-  }
-
+  //bool found = false;
   while(1){
-
+    //if(found == false) { printString("Ended\n"); found = true; }
   }
 
   exit( EXIT_SUCCESS );

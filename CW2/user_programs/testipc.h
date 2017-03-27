@@ -8,5 +8,6 @@
 #include "libc.h"
 #include "buffer.h"
 #include "svc_calls.h"
+#include "IPC.h"
 
 #endif
