@@ -6,7 +6,6 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include "libc.h"
-#include "svc_calls.h"
 
 
 #endif

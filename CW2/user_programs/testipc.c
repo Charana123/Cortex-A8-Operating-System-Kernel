@@ -13,15 +13,17 @@ void main_testipc() {
         exec(&main_testipc);
       }
   }
+  printString("Halfway");
 
   //Allocates buffer with master
   buffer_t *buffer = NULL;
   if(id % 2 == 0) { buffer = alloc(id + 1); }
-  else { buffer = alloc(id - 1); }
+  else { buffer = alloc(id - 1); printString("Allocated Buffer\n"); }
 
   if(id % 2 == 0) { writeBuffer(buffer,id,999); }
 
   else {
+    printString("Trying to Read\n");
     int data = readBuffer(buffer,id);
     printString("Data-");
     printInt(data);

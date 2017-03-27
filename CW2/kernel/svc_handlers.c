@@ -55,7 +55,10 @@ buffer_t* svc_alloc(int targetPID, pcb_t *pcb, int currentProcess){
       existingPipeIndex++;
     }
     //1)Returns existing buffer if it exists
-    if(allocatedPipeExists == true){ return pcb[currentProcess].buffers[existingPipeIndex]; }
+    if(allocatedPipeExists == true){
+      printString("Found");
+      return pcb[currentProcess].buffers[existingPipeIndex];
+    }
 
     //2) Allocates a buffer in target process PCB
     if(allocatedPipeExists == false){
@@ -71,6 +74,7 @@ buffer_t* svc_alloc(int targetPID, pcb_t *pcb, int currentProcess){
       pcb[targetPID - 1].buffers[newPipeIndex] -> sem_counter = 1;
       pcb[targetPID - 1].buffers[newPipeIndex] -> sourceDelloc = false;
       pcb[targetPID - 1].buffers[newPipeIndex] -> sourceDelloc = false;
+      printString("Not Found");
 
       return pcb[targetPID - 1].buffers[newPipeIndex];
     }

@@ -2,24 +2,30 @@
 
 
 
+int is_prime( uint32_t x ) {
+  if ( !( x & 1 ) || ( x < 2 ) ) {
+    return ( x == 2 );
+  }
+  for( uint32_t d = 3; ( d * d ) <= x ; d += 2 ) {
+    if( !( x % d ) ) { return 0; }
+  }
+  return 1;
+}
+
 
 void main_P3() {
 
-  int r = fork(5);
+  for( int i = 0; i < 50; i++ ) {
+    printString("P3");
 
-  while(1){
-    for( int i = 0; i < 50; i++ ) {
-      if( r == 0 ) { write( STDOUT_FILENO, "P3\n", 2 ); }
-      else { write( STDOUT_FILENO, "P3++\n", 2 ); }
+    uint32_t lo = 1 <<  8;
+    uint32_t hi = 1 << 16;
 
-      uint32_t lo = 1 <<  8;
-      uint32_t hi = 1 << 16;
-
-      for( uint32_t x = lo; x < hi; x++ ) {
-        int r = is_prime( x );
-      }
+    for( uint32_t x = lo; x < hi; x++ ) {
+      int r = is_prime( x );
     }
   }
 
+  printString("\nP3 Exiting\n");
   exit( EXIT_SUCCESS );
 }

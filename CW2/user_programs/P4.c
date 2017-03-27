@@ -14,8 +14,9 @@ uint32_t gcd( uint32_t x, uint32_t y ) {
 }
 
 void main_P4() {
-  while( 1 ) {
-    write( STDOUT_FILENO, "P4", 2 );
+
+  while(1){
+    printString("P4");
 
     uint32_t lo = 1 <<  4;
     uint32_t hi = 1 <<  8;
@@ -27,5 +28,6 @@ void main_P4() {
     }
   }
 
+  printString("\nP4 Exiting\n");
   exit( EXIT_SUCCESS );
 }

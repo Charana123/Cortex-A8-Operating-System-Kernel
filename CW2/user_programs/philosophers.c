@@ -23,20 +23,13 @@ void main_IPC1() {
 
   while(1){
     //Asks for forks
-    //printString("Philospher tries to Write"); printInt(id); printString("\n");
     writeBuffer(buffer,id,1);
-    //printString("Philospher finished Writing"); printInt(id); printString("\n");
-    //printString("Philospher tries to Read"); printInt(id); printString("\n");
     int data = readBuffer(buffer, id);
-    //printString("Philospher finishes Reading Writing"); printInt(id); printString("\n");
     if(data == 1){
       printString("Philosopher Process");
       printInt(id);
       printString("-Started Eating\n");
-      //Gives back forks
-      //printString("Philospher giving back his pipes"); printInt(id); printString("\n");
       writeBuffer(buffer,id,0);
-      //printString("Philospher finishes giving back his pipes"); printInt(id); printString("\n");
     }
     if(data == 0){
       printString("Philosopher Process");

@@ -110,9 +110,11 @@ void hilevel_handler_svc(ctx_t* ctx, uint32_t id) {
 
   case 0x01 : { // 0x01 => write( fd, x, n )
     int   fd = ( int   )( ctx->gpr[ 0 ] );
-    char*  x = ( char* )( ctx->gpr[ 1 ] );
+    char* string = ( char* )( ctx->gpr[ 1 ] );
     int    n = ( int   )( ctx->gpr[ 2 ] );
-    printString(x);
+    for(int i = 0; i < n ; i++ ) {
+      PL011_putc( UART0, *(string + i), true );
+    }
     ctx->gpr[ 0 ] = n;
     break;
   }
@@ -130,6 +132,7 @@ void hilevel_handler_svc(ctx_t* ctx, uint32_t id) {
     int exitStatus = (int) (ctx ->gpr[0]);
     svc_kill(pcb, currentProcess);
     currentProcess = priorityScheduler(ctx, pcb, currentProcess, maxProcesses);
+    break;
   }
 
   case 0x05:{ // 0x05 => exec(addr)
@@ -172,7 +175,6 @@ void hilevel_handler_svc(ctx_t* ctx, uint32_t id) {
   }
 
   default   : { // 0x?? => unknown/unsupported
-    int y;
     break;
   }
 }

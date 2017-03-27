@@ -4,14 +4,12 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include "PL011.h"
+#include "svc_calls.h"
 
 //Prints a Integer via itoa then UART instance
 extern void printInt(int x);
 //Prints String via UART instance
-extern void printString(char *pointer);
-//Is a number prime
-extern int is_prime( uint32_t x );
-//Read from buffer
+extern void printString(char *string);
 //Sleep function
 extern void sleep(int freq);
 
