@@ -29,12 +29,10 @@ int svc_fork(int basePriority, ctx_t* ctx, pcb_t *pcb, int maxProcesses);
 */
 buffer_t* svc_alloc(int targetPID, pcb_t *pcb, int currentProcess);
 /*
-Deallocated given buffer if it hasn't already already been deallocated. Doesn't deallocate the buffer if
-input still exists written to it.
-@param buffer - Address of the buffer to deallocate
-@return - | if input still exists written in the buffer = 0
-          | if buffer doesn't exit i.e. has been deallocated previously = 2
-          | if buffer gets deallocated = 1
+  Sets the processes corresponding deallocation flag
+  @param buffer - Address of the buffer to deallocate
+  @return - | if opposite processes dealloc flag is not set = 0 (Deallocation failed)
+            | if both processes dealloc flags are set = 1 (Deallocation success)
 */
 int svc_dealloc(buffer_t *buffer, pcb_t *pcb, int procID);
 
