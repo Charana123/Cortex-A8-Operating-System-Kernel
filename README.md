@@ -54,6 +54,6 @@
             * The Kernel Stacks can only be accessed when in a Kernel Mode.
             * Each Program Stack is protected from each other as no mapping exist to any stack other than their own.
     * Possible Modifications ?
-        * Dynamically grow stack (allocate pages) when stack runs out (DAB, data abort)
+        * Dynamically grow stack (demand paging, allocate pages) when stack runs out (DAB, data abort)
         * Dedicated Heap (allocate heap)
         * 2 Level Page Table (Page the Page Table)
