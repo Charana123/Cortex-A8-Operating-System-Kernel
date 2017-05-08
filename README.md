@@ -56,4 +56,5 @@
     * Possible Modifications ?
         * Dynamically grow stack (demand paging, allocate pages) when stack runs out (DAB, data abort)
         * Dedicated Heap (allocate heap)
+        * Copy on Write
         * 2 Level Page Table (Page the Page Table)
